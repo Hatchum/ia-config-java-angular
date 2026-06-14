@@ -290,7 +290,7 @@ Les hooks sont **déterministes** : contrairement aux instructions CLAUDE.md (ad
 
 ---
 
-## 6. MCP — Connexions externes
+## 6. MCP — Connexions externes (REMOVED)
 
 > 📖 [Docs officielles MCP](https://code.claude.com/docs/en/mcp)
 
@@ -316,6 +316,17 @@ claude mcp list
 - Utiliser `/permissions` pour ajouter des domaines fréquemment utilisés à la liste blanche
 - Déconnecter les serveurs MCP non utilisés pour économiser du contexte
 - Les noms d'outils MCP se chargent au démarrage ; les schémas complets sont différés
+
+---
+
+## 6.b. CLI + skill (REPLACE MCP)
+
+### CLI à intégrer
+
+| Nom | Utilité | Modèle recommandé | Priorité | CLI |
+|---|---|---|---|
+| **Context7** | Documentation officielle de librairies en temps réel | `haiku` (via agent-explore-docs) | 🔴 Haute | npx ctx7 setup --claude |
+| **Exa** (payant) | Recherche web sémantique avancée | `haiku` (via agent-explore-web) | 🟡 Moyenne | ??? |
 
 ---
 
