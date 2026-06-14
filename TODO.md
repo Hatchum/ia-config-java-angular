@@ -176,7 +176,8 @@ Avant de plonger, il faut comprendre une chose qui change tout : Claude Code et 
 
 ## Ce qui se partage vraiment vs ce qui reste spécifique
 C'est le tableau le plus important. La réalité honnête : environ 70-80 % de votre config (le contenu « intelligent ») se mutualise totalement ; le reste (réglages techniques au format propriétaire) doit rester par-outil.
-| Brique | Claude Code | Codex | Mutualisable ? | 
+| Brique | Claude Code | Codex | Mutualisable ? |
+|---|---|---|---|
 | Instructions / mémoire | CLAUDE.md (~/.claude/, projet, CLAUDE.local.md) | AGENTS.md (~/.codex/AGENTS.md, racine projet, par-dossier) | ✅ Oui — AGENTS.md = source unique ; CLAUDE.md l'importe | 
 | Skills | ~/.claude/skills/<nom>/SKILL.md et .claude/skills/ | ~/.agents/skills/ et <repo>/.agents/skills/ | ✅ Oui — même format SKILL.md, via symlink | 
 | Workflows / commandes | .claude/commands/ → fusionnés dans les skills | « custom prompts » dépréciés → remplacés par les skills | ✅ Oui — à exprimer comme skills | 
