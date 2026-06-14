@@ -75,4 +75,36 @@ log technique / Log placement patterns, prefixes, security guideline
 # Team
 Ajouter le setting claude agent-team
 
+## Optimisation Claude Code
+# Conversation
+/clear
+/compact
+/context : Utilisation des MCP
+/mcp
+
+Output (réponse de Claude Code trop verbeuse)
+
+# Modeles
+Opus -> Architecture, structuration, réflexion profonde (Tache complexe / Raisonnement)
+sonnet -> Code, écrire, éxecuter (tache modérée / Execution)
+Haiku -> Rechercher, classer (Tache simple/rapide)
+
+# CLAUDE.md optimise (essentiel)
+
+# Cache
+Activé par défaut
+Cahce mort, declencheurs : 
+- Changer de modele
+- Ajouter un MCP
+- Long délai > 5min
+
+# Fichier en prompt
+| 1x | 5x | 20x | 
+|.txt, .md < | .pdf,.doc < | image, screenshot
+
+# Utilisation des subagent
+Isoler correctement la tache de l'agent (modification d'un seul fichier, recherche, etc) orchéstré par l'agent principale
+Utilisation des team avec task ?
+
+s x
 ---
