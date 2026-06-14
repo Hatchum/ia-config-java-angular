@@ -109,5 +109,8 @@ Cahce mort, declencheurs :
 Isoler correctement la tache de l'agent (modification d'un seul fichier, recherche, etc) orchéstré par l'agent principale
 Utilisation des team avec task ?
 
+## Lp 
+claude plugin install jdtls-lsp@claude-plugins-official
+
 s x
 ---
