@@ -261,48 +261,38 @@ Faire cohabiter Claude Code (Anthropic) et Codex (OpenAI) en appliquant le princ
 
 Voici la stratégie architecturale pour unifier ces deux environnements à travers tous vos projets, basée sur les documentations officielles récentes des deux outils.
 
-1. Le Contexte de Projet Universel (Project Scope)
+#1. Le Contexte de Projet Universel (Project Scope)
 Plutôt que d'écrire vos règles métier en double dans le CLAUDE.md (pour Anthropic) et dans les couches de configuration .codex/ (pour OpenAI), créez un fichier de vérité absolu à la racine de chaque projet.
 
-L'approche : Créez un fichier PROJECT_CONTEXT.md à la racine. Ce fichier contiendra l'architecture, les conventions de code, le contexte métier et les workflows spécifiques au projet.
-
-Pour Claude Code : Dans votre fichier CLAUDE.md, ne mettez qu'une instruction de redirection :
-
-Markdown
-# Contexte global
+- L'approche : Créez un fichier PROJECT_CONTEXT.md à la racine. Ce fichier contiendra l'architecture, les conventions de code, le contexte métier et les workflows spécifiques au projet.
+- Pour Claude Code : Dans votre fichier CLAUDE.md, ne mettez qu'une instruction de redirection :
+Contexte global
 Lis impérativement le fichier `PROJECT_CONTEXT.md` pour comprendre les règles, l'architecture et les standards de ce projet avant de planifier la moindre tâche.
-Pour OpenAI Codex : Dans votre fichier de configuration local (ou votre AGENTS.md si vous utilisez les agents par défaut du répertoire de travail), ajoutez une règle système similaire exigeant la lecture prioritaire du PROJECT_CONTEXT.md.
+- Pour OpenAI Codex : Dans votre fichier de configuration local (ou votre AGENTS.md si vous utilisez les agents par défaut du répertoire de travail), ajoutez une règle système similaire exigeant la lecture prioritaire du PROJECT_CONTEXT.md.
 
-2. Le Hub Centralisé et les Liens Symboliques (Symlinks)
+#2. Le Hub Centralisé et les Liens Symboliques (Symlinks)
 Pour partager les configurations globales (agents, "skills", paramètres persistants) entre vos différents projets et entre les deux IA, vous devez sortir la donnée des dossiers natifs (~/.claude/ et ~/.codex/) pour la placer dans un Hub central.
 
-Créer le Hub : Créez un dossier global sur votre machine, par exemple ~/ai-config-hub/.
-
-Plaintext
+- Créer le Hub : Créez un dossier global sur votre machine, par exemple ~/ai-config-hub/.
 ~/ai-config-hub/
 ├── skills/          # Vos workflows réutilisables (ex: deploy_checklist.md)
 ├── agents/          # Définitions de vos sous-agents spécialisés
 └── hooks/           # Scripts d'automatisation exécutables (bash, python, node)
-Lier Claude Code : Claude cherche ses agents et skills dans ~/.claude/agents/ et ~/.claude/skills/. Supprimez ces dossiers s'ils existent et créez des liens symboliques pour qu'ils pointent vers votre Hub :
-
+- Lier Claude Code : Claude cherche ses agents et skills dans ~/.claude/agents/ et ~/.claude/skills/. Supprimez ces dossiers s'ils existent et créez des liens symboliques pour qu'ils pointent vers votre Hub :
 Bash
 ln -s ~/ai-config-hub/skills ~/.claude/skills
 ln -s ~/ai-config-hub/agents ~/.claude/agents
-Lier Codex : Codex permet de définir le chemin de configuration des agents via config.toml (par exemple agents.<name>.config_file). Configurez votre ~/.codex/config.toml global pour faire pointer tous les profils d'agents vers le dossier partagé ~/ai-config-hub/agents/.
+- Lier Codex : Codex permet de définir le chemin de configuration des agents via config.toml (par exemple agents.<name>.config_file). Configurez votre ~/.codex/config.toml global pour faire pointer tous les profils d'agents vers le dossier partagé ~/ai-config-hub/agents/.
 
-3. Mutualisation des Outils via MCP (Model Context Protocol)
+#3. Mutualisation des Outils via MCP (Model Context Protocol)
 L'écosystème IA converge actuellement vers le standard MCP pour se connecter à des outils externes (GitHub, bases de données, Sentry, navigateurs headless). C'est le moyen le plus puissant d'éviter la duplication des outils techniques.
+- Ne configurez pas de petits scripts ou d'outils spécifiques en dur dans les settings isolés de Claude ou de Codex.
+- Gérez vos outils via un fichier global .mcp.json (ou configurez un serveur MCP local unique) et demandez aux deux CLI de s'y connecter. Ainsi, l'ajout d'une intégration externe (comme un accès direct à Jira ou Slack) profitera aux deux IA instantanément et avec les mêmes droits.
 
-Ne configurez pas de petits scripts ou d'outils spécifiques en dur dans les settings isolés de Claude ou de Codex.
-
-Gérez vos outils via un fichier global .mcp.json (ou configurez un serveur MCP local unique) et demandez aux deux CLI de s'y connecter. Ainsi, l'ajout d'une intégration externe (comme un accès direct à Jira ou Slack) profitera aux deux IA instantanément et avec les mêmes droits.
-
-4. Harmonisation des Hooks (Scripts d'automatisation)
+#4. Harmonisation des Hooks (Scripts d'automatisation)
 Les deux outils permettent de déclencher des "hooks" (scripts qui s'exécutent lors d'événements spécifiques, comme avant un commit, au lancement d'une session, ou lors d'une utilisation d'outil).
-
-Stockez vos scripts de vérification (linting, tests de sécurité, formatage) dans ~/ai-config-hub/hooks/.
-
-Dans ~/.claude/settings.json et dans le config.toml de Codex, référencez les chemins absolus vers ces mêmes scripts. La logique d'exécution restera la même quel que soit le modèle IA qui déclenche l'action.
+- Stockez vos scripts de vérification (linting, tests de sécurité, formatage) dans ~/ai-config-hub/hooks/.
+- Dans ~/.claude/settings.json et dans le config.toml de Codex, référencez les chemins absolus vers ces mêmes scripts. La logique d'exécution restera la même quel que soit le modèle IA qui déclenche l'action.
 
 En séparant "l'intention" (stockée dans votre Hub et votre contexte universel) des "moteurs" (Claude Code ou Codex Desktop/CLI), les fichiers de configuration spécifiques à chaque IA se transforment en simples routeurs très légers.
 
