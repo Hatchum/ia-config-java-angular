@@ -1,0 +1,26 @@
+{
+  "skill_name": "prompt-creator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "J'ai besoin d'un prompt pour mon orchestrateur qui, à partir d'une demande de feature, produit un plan d'implémentation découpé en tâches pour notre frontend Angular. Le plan doit pouvoir être consommé directement par l'orchestrateur.",
+      "expected_output": "An English, planning-archetype prompt for an Angular feature. Should restate scope, decompose into ordered tasks with depends_on and per-task acceptance criteria, surface risks/affected modules, and emit the <handoff> block with a <plan> payload (no <changes>/<verification>). Should set status=needs_clarification with <open_questions> when the request is ambiguous. Uses a {{FEATURE_REQUEST}} variable. Design notes state: planning · angular · orchestrated.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "prompt": "Crée un prompt pour un sous-agent Claude qui analyse et corrige un bug dans notre backend Java/Spring. Il recevra le nom du test qui échoue et la stack trace.",
+      "expected_output": "An English, bug-fix-archetype prompt tuned for Claude (XML tags, no prefill, <thinking> for root-cause). Instructions must cover reproduce -> root cause -> minimal fix -> regression test -> run suite. Uses {{FAILING_TEST}} and {{STACK_TRACE}} variables. Emits the <handoff> with <diagnosis>, <changes>, and <verification> (scripts\\test.cmd or mvn). Guardrail: status=blocked if it cannot reproduce. Design notes state: bug-fix · java · Claude.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 3,
+      "prompt": "Fais-moi un prompt pour implémenter un trailing stop dans notre Expert Advisor MQL5, validé dans le Strategy Tester.",
+      "expected_output": "An English, feature-archetype prompt for MQL5 (agnostic/XML since no model given). Must include MQL5-specific guardrails: own positions via magic number, NormalizeDouble to _Digits, respect stop levels, check GetLastError, no look-ahead bias. Verification = clean MetaEditor compile + a Strategy Tester run with concrete symbol/timeframe/date range. Emits <handoff> with <changes> and <verification>. Uses a {{FEATURE_REQUEST}} variable. Design notes state: feature · mql5.",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}
