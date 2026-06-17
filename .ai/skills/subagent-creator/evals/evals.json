@@ -1,0 +1,41 @@
+{
+  "skill_name": "subagent-creator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I keep asking Claude to review my pull requests and it floods my main chat with diffs. Can you set me up a dedicated agent that just reviews recent code changes for quality and security and reports back, read-only?",
+      "expected_output": "A ready-to-save .claude/agents/ file for a focused, read-only code-reviewer subagent: kebab-case name, a specific 'when to use' description, tools limited to Read/Grep/Glob (+ Bash for git diff, no Write/Edit), a deliberately chosen model with justification, and a system-prompt body following the role -> when-invoked steps -> checklist -> output anatomy.",
+      "files": [],
+      "expectations": [
+        "Output is a complete agent file with valid YAML frontmatter (name + description present)",
+        "name is kebab-case and description states when Claude should delegate",
+        "tools are least-privilege: includes Read/Grep/Glob, excludes Write and Edit",
+        "model field is set and the choice is explained to the user",
+        "Body follows the role -> 'When invoked' steps -> checklist -> output-format anatomy",
+        "Tells the user where to save the file and that a session restart loads disk edits"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Make me a fast, cheap agent that just explores big codebases and finds where things are defined. It should never modify files. I don't care about deep reasoning, I want it quick.",
+      "expected_output": "A read-only explorer subagent recommending model: haiku for speed/cost, tools restricted to Read/Grep/Glob (no Write/Edit/Bash unless justified), with the model recommendation explicitly justified by the 'fast and cheap' requirement.",
+      "files": [],
+      "expectations": [
+        "Recommends model: haiku and justifies it from the fast/cheap requirement",
+        "Tools exclude Write and Edit (read-only)",
+        "description makes the agent's exploration purpose and when-to-use clear"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want a debugging agent that can actually fix failing tests in our Spring Boot service, not just point at them. Use whatever model my session is on.",
+      "expected_output": "A debugger subagent that includes Edit/Write/Bash (because it fixes code), model: inherit (honoring 'whatever model my session is on'), and a body with a diagnosis-to-verification workflow.",
+      "files": [],
+      "expectations": [
+        "model is set to inherit, honoring the user's 'use my session model' request",
+        "tools include Edit/Write and Bash because the agent must modify and run code",
+        "Body includes a root-cause-first debugging workflow ending in verification"
+      ]
+    }
+  ]
+}

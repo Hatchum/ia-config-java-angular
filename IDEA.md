@@ -59,7 +59,7 @@
 ### Skills à créer
 
 - [ ] **`skill-claude-memory`** : Skill qui recherche la documentation officielle sur la création/optimisation des fichiers CLAUDE.md, hiérarchie, path-scoped rules, best practices et anti-patterns. Déclencher quand on travaille avec CLAUDE.md ou `.claude/rules/`.
-
+https://github.com/thedotmack/claude-mem/blob/main/docs/i18n/README.fr.md
 ---
 
 ## 2. Rules — `.claude/rules/`
