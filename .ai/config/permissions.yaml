@@ -41,6 +41,23 @@ permissions:
     - "Bash(Stop-Process *)"
     # Privilege escalation
     - "Bash(runas *)"
+    # Database clients — the agent must not access databases directly (policy).
+    # Verify persisted state through the application layer instead (see api-testing).
+    - "Bash(psql*)"
+    - "Bash(pg_dump*)"
+    - "Bash(pg_restore*)"
+    - "Bash(pg_dumpall*)"
+    - "Bash(createdb*)"
+    - "Bash(dropdb*)"
+    - "Bash(mysql*)"
+    - "Bash(mysqldump*)"
+    - "Bash(mysqladmin*)"
+    - "Bash(mariadb*)"
+    - "Bash(sqlite3*)"
+    - "Bash(mongo*)"
+    - "Bash(redis-cli*)"
+    - "Bash(sqlcmd*)"
+    - "Bash(sqlplus*)"
 
   ask:
     # Destructive git operations — always confirm

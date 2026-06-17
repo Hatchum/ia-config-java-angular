@@ -2,6 +2,9 @@
 .claude/changes.local.log
 .claude/settings.local.json
 
+# Temporary staging — skills to relocate to the trading project (see README inside)
+_export-trading/
+
 # OS noise
 .DS_Store
 Thumbs.db

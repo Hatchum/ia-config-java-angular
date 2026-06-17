@@ -392,9 +392,11 @@ Pour ne rien perdre des trois analyses sources.
 | **Skills (canon)** | `.ai/skills/` = copie unique (Java + Angular + outillage) |
 | **Skills (liens)** | `.claude/skills` et `.agents/skills` → `.ai/skills` (junctions) |
 | **Règles métier** | `.ai/rules/*.md` + `.claude/rules` → `.ai/rules` |
+| **Skills outils externes** | Créés dans `.ai/skills/` : `find-docs` (ctx7), `playwright` (visuel/E2E), `api-testing` (HTTPie+jq). Skills trading (`forge-cli`, `mql5-compile`, `mql5-backtest`, `ict-concepts`, `mql5-patterns`) en staging dans `_export-trading/` (gitignored) à relocaliser |
 | **Permissions (source)** | `.ai/config/permissions.yaml` — **liste canonique unique fusionnée** (format Claude) |
 | **Permissions (Claude)** | `.claude/settings.json` généré (deny/ask/allow, verbatim) |
 | **Permissions (Codex)** | `.codex/rules/execution-policy.rules` Starlark **dérivé** des entrées `Bash(...)` |
+| **Politique BDD** | Accès direct BDD **interdit** : skills `db-cli`/`docker-local` retirés + `deny` des clients (psql/mysql/sqlite3/mongo/redis…) dans `permissions.yaml` → projeté Claude + Codex |
 | **Hooks (source)** | `.ai/config/hooks.yaml` — sections `claude:` + `codex:` |
 | **Hooks (scripts)** | `.sh` **et** `.ps1` rendus portables (résolution projet via git si pas de `CLAUDE_PROJECT_DIR`) |
 | **Hooks (multi-payload)** | extracteur partagé `hook_changed_files` / `Get-HookChangedFiles` : gère `tool_input.file_path` (Claude) **et** les marqueurs `apply_patch` (Codex). `json_field` robuste jq → Python → grep |
@@ -409,7 +411,6 @@ Pour ne rien perdre des trois analyses sources.
 |---|---|
 | **Subagents** | Créer `.ai/config/subagents.yaml` + génération `.claude/agents/*.md` et TOML Codex |
 | **AGENTS.md / CLAUDE.md** | Assemblage par le générateur si fragments ; remplir placeholders `ARCHITECTURE.md` |
-| **Skills CLI outils externes** | Créer les skills `gh`/`mvn`/`docker`… (remplacent les MCP) |
-| **Nettoyage MCP** | Supprimer `.mcp.json` et la référence `disabledMcpjsonServers` une fois MCP abandonnés |
+| **Skills CLI (au besoin)** | Ajouter d'autres skills CLI selon les besoins équipe (MCP remplacés par skills+CLI). NB : Docker & clients BDD **volontairement exclus** par la politique BDD |
 | **Layout global** | `~/ai-config/` (hub utilisateur) + symlinks `~/.claude`, `~/.agents`, `~/.codex` |
 | **Test Codex réel** | Vérifier découverte `.agents/skills`, chargement `.codex/hooks.json` et `execution-policy.rules` sur la version installée |

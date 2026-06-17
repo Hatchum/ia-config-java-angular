@@ -25,7 +25,22 @@
       "Bash(Restart-Computer*)",
       "Bash(taskkill /f *)",
       "Bash(Stop-Process *)",
-      "Bash(runas *)"
+      "Bash(runas *)",
+      "Bash(psql*)",
+      "Bash(pg_dump*)",
+      "Bash(pg_restore*)",
+      "Bash(pg_dumpall*)",
+      "Bash(createdb*)",
+      "Bash(dropdb*)",
+      "Bash(mysql*)",
+      "Bash(mysqldump*)",
+      "Bash(mysqladmin*)",
+      "Bash(mariadb*)",
+      "Bash(sqlite3*)",
+      "Bash(mongo*)",
+      "Bash(redis-cli*)",
+      "Bash(sqlcmd*)",
+      "Bash(sqlplus*)"
     ],
     "ask": [
       "Bash(git push --force*)",

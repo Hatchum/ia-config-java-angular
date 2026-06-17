@@ -24,6 +24,29 @@ If a command fails with a quota error, inform the user and suggest `npx ctx7@lat
 Run Context7 CLI requests outside Codex's default sandbox. If a Context7 CLI command fails with DNS or network errors such as ENOTFOUND, host resolution failures, or fetch failed, rerun it outside the sandbox instead of retrying inside the sandbox.
 <!-- context7 -->
 
+<!-- playwright -->
+For any change that affects the Angular UI — a layout/styling/rendering bug, a
+visual fix, or a feature with a visible surface — use the `playwright` skill to
+**see** the result, don't reason from the code alone. A visual change is "done"
+only when a screenshot confirms it.
+
+Proactive triggers: the user reports something looking wrong ("the table is
+misaligned", "the modal doesn't show", "broken on mobile"), asks to "check how
+it looks" / "take a screenshot" / "verify the fix in the UI", or you just edited
+a `.component.html`/`.scss`/template that changes what's on screen.
+
+Loop: start the app (`scripts\build` then `ng serve`), capture the current state
+with a pinned viewport
+(`npx playwright screenshot --viewport-size=1280,800 --wait-for-selector="<sel>" <url> before.png`),
+apply the fix, re-capture `after.png`, then **Read the images back** and compare
+before claiming success. Use `npx playwright test` for E2E and
+`toHaveScreenshot()` for pixel regression. See the `playwright` skill for detail;
+fetch exact API via `find-docs` (`ctx7 docs /microsoft/playwright "<question>"`).
+
+Do not use for: backend-only changes, non-visual logic, or unit-testable work
+that needs no rendering.
+<!-- playwright -->
+
 
 ## Documentation map (who owns what)
 | File                                                                    | Authoritative for |
