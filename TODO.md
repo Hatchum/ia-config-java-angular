@@ -1,299 +1,360 @@
-# Codex
+# Mutualiser la configuration entre Claude Code et Codex — Architecture retenue
 
-Oui. La bonne approche n’est pas de chercher un fichier magique commun à Claude Code et Codex, parce qu’il n’existe
-  pas officiellement. Il faut créer une source de vérité neutre, puis exposer des adaptateurs minces vers Claude Code et
-  Codex.
+> Document de référence. Objectif : maintenir **une seule source de vérité** pour tout le
+> contenu « intelligent » (instructions, skills, règles métier, outils) partagé entre
+> **Claude Code** (Anthropic) et **Codex** (OpenAI), tout en générant proprement les
+> réglages techniques propres à chaque outil.
 
-  Ce que disent les docs officielles
+---
 
-  - Claude Code sépare les scopes Managed, User, Project, Local, avec notamment ~/.claude/, .claude/, CLAUDE.md,
-    .claude/settings.json, .claude/skills/, .claude/agents/, .mcp.json selon le type de config. Les règles projet
-    peuvent vivre dans .claude/rules/, avec du paths frontmatter, et Claude supporte les imports dans CLAUDE.md via
-    @path docs Claude settings (https://code.claude.com/docs/en/settings) docs Claude memory/rules
-    (https://code.claude.com/docs/en/memory).
+## 1. Principe directeur
 
-  - Codex utilise ~/.codex/config.toml, .codex/config.toml, AGENTS.md, .agents/skills, .codex/rules/, .codex/agents/,
-    hooks dans hooks.json ou [hooks] TOML, et charge les configs projet seulement dans les projets approuvés docs Codex
-    config (https://developers.openai.com/codex/config-reference) docs Codex advanced config
-    (https://developers.openai.com/codex/config-advanced).
+Il n'existe **aucun fichier unique physiquement partageable** entre les deux outils : leurs
+réglages techniques utilisent des formats incompatibles **par conception** (JSON pour
+`settings.json` côté Claude, TOML pour `config.toml` côté Codex, Starlark pour les `.rules`
+de Codex). Chercher un « fichier magique » est une impasse.
 
-  - Les skills sont le meilleur point de convergence : Claude Code et Codex s’appuient tous les deux sur le standard
-    Agent Skills avec un dossier contenant SKILL.md et éventuellement scripts/, references/, assets/ docs Claude skills
-    (https://code.claude.com/docs/en/skills) docs Codex skills (https://developers.openai.com/codex/skills).
+La stratégie retenue sépare deux natures de configuration :
 
-  - MCP est aussi un bon point commun : les deux supportent MCP pour connecter des outils externes docs Claude MCP
-    (https://code.claude.com/docs/en/mcp) docs Codex customization MCP
-    (https://developers.openai.com/codex/concepts/customization).
+1. **Le contenu intelligent** — instructions, skills, workflows, règles métier, déclarations
+   d'outils. C'est ~70–80 % de la config, et il se mutualise **totalement** via deux
+   mécanismes natifs : l'**import `@AGENTS.md`** (instructions) et le **standard ouvert
+   `SKILL.md` + liens symboliques** (skills).
+2. **Les réglages techniques** — `settings.json`, `config.toml`, permissions, politique
+   d'exécution, hooks, subagents. Ils ne peuvent pas partager un fichier, mais on évite la
+   **duplication de connaissance** en maintenant **une source abstraite unique** (YAML) qui
+   **génère** les deux projections.
 
-## Architecture recommandée
-  Crée un dépôt unique, par exemple :
+Règle mentale : on partage **l'intention** ; les fichiers spécifiques à chaque IA deviennent
+de simples **routeurs légers** vers cette intention.
 
-  ~/ai-agent-config/
-    common/
-      instructions/
-        global.md
-        engineering.md
-        security.md
-        review.md
-      skills/
-        commit/
-          SKILL.md
-          scripts/
-          references/
-        code-review/
-          SKILL.md
-      agents/
-        reviewer.yaml
-        explorer.yaml
-      mcp/
-        servers.yaml
-      hooks/
-        policies.yaml
-        scripts/
-      workflows/
-        release.md
-        incident-debug.md
+---
 
-    adapters/
-      claude/
-        CLAUDE.md
-        settings.json
-        rules/
-        agents/
-        skills/ -> links or generated copies
-        mcp.json
+## 2. Ce qui se mutualise vraiment vs ce qui reste spécifique
 
-      codex/
-        AGENTS.md
-        config.toml
-        rules/
-        agents/
-        hooks.json
-
-  Le principe : tu modifies seulement common/, puis un script sync génère ou met à jour les fichiers propres à chaque
-  outil.
-
-## Mapping concret
-
-  - Instructions générales :
-      - Source : common/instructions/*.md
-      - Claude : CLAUDE.md peut importer avec @../common/instructions/global.md.
-      - Codex : génère AGENTS.md, car Codex documente AGENTS.md mais pas un mécanisme d’import équivalent à @path.
-
-  - Rules :
-      - Source : common/instructions/rules/*.md ou common/rules/*.yaml
-      - Claude : .claude/rules/*.md, avec paths: si règle conditionnelle.
-      - Codex : .codex/rules/*.rules pour les règles d’exécution de commandes hors sandbox. Attention : ce ne sont pas
-        les mêmes “rules” que Claude. Les règles Claude guident le comportement ; les règles Codex contrôlent surtout
-        les commandes autorisées/promptées/interdites Codex rules (https://developers.openai.com/codex/rules).
-
-  - Skills :
-      - Source : common/skills/<skill>/SKILL.md
-      - Codex : expose via .agents/skills ou skills.config dans config.toml.
-      - Claude : expose via .claude/skills.
-      - Ici, tu peux utiliser des liens symboliques/junctions Windows ou générer des copies contrôlées. Les liens sont
-        plus propres, les copies générées sont plus portables.
-
-  - Subagents :
-      - Source : common/agents/*.yaml
-      - Claude : génère .claude/agents/<name>.md.
-      - Codex : génère .codex/agents/<name>.toml.
-      - Les modèles sont différents : Claude décrit des subagents spécialisés avec prompt, outils, permissions ; Codex
-        définit des agents TOML avec name, description, developer_instructions, modèle, sandbox, MCP, etc. Claude
-        subagents (https://code.claude.com/docs/en/sub-agents) Codex subagents
-        (https://developers.openai.com/codex/subagents).
-
-  - MCP :
-      - Source : common/mcp/servers.yaml
-      - Claude : génère .mcp.json ou config MCP Claude.
-      - Codex : génère [mcp_servers.<id>] dans config.toml.
-      - Garde les secrets hors dépôt : variables d’environnement, helpers, ou config locale non versionnée.
-
-  - Hooks :
-      - Source : common/hooks/policies.yaml + scripts partagés.
-      - Claude : génère hooks dans .claude/settings.json.
-      - Codex : génère hooks.json ou [hooks] dans .codex/config.toml.
-      - Les événements se ressemblent conceptuellement, mais les schémas ne sont pas identiques. Ne tente pas un fichier
-        hook unique directement chargé par les deux Claude hooks (https://code.claude.com/docs/en/hooks) Codex config
-        hooks (https://developers.openai.com/codex/config-advanced).
-
-## Structure par projet
-  Dans chaque repo applicatif, je ferais :
-
-  my-project/
-    AGENTS.md              # généré depuis common + règles projet
-    CLAUDE.md              # petit fichier qui importe ou référence common
-    .agents/
-      skills/              # liens ou copies générées vers common/skills
-    .codex/
-      config.toml
-      rules/
-      hooks.json
-      agents/
-    .claude/
-      settings.json
-      rules/
-      skills/
-      agents/
-    .mcp.json              # si MCP partagé côté Claude
-
-  Ajoute un en-tête dans tous les fichiers générés :
-
-  <!-- GENERATED FROM ~/ai-agent-config/common. DO NOT EDIT DIRECTLY. -->
-
-## Stratégie pratique sur Windows
-  Comme tu es sur Windows, le plus robuste est un script PowerShell :
-
-  ~/ai-agent-config/tools/sync-agents.ps1 -TargetRepo C:\path\to\repo
-
-  Il ferait :
-
-  1. Valider les fichiers common/*.yaml.
-  2. Générer AGENTS.md pour Codex.
-  3. Générer ou mettre à jour CLAUDE.md.
-  4. Copier ou créer des junctions pour les skills.
-  5. Générer .codex/config.toml, .claude/settings.json, .mcp.json.
-  6. Refuser d’écraser les fichiers modifiés manuellement si l’en-tête GENERATED manque.
-
-  Décision importante
-  Je te conseille cette règle de gouvernance :
-
-  - À versionner dans les projets : règles projet, skills projet, instructions projet, hooks non secrets.
-  - À garder au niveau utilisateur : préférences personnelles, style de réponse, modèles par défaut, chemins locaux.
-  - À garder hors Git : tokens, clés API, endpoints privés, config machine.
-  - À générer : tout ce qui traduit une source commune vers un format Claude ou Codex.
-
-  Le cœur de la solution : standardiser les skills et MCP, générer le reste. C’est le seul modèle propre, durable, et
-  compatible avec les docs officielles actuelles des deux outils.
-
-
-# Claude Code 
-Avant de plonger, il faut comprendre une chose qui change tout : Claude Code et Codex convergent désormais vers deux standards partagés que vous pouvez exploiter pour ne maintenir qu'une seule source de vérité.
-
-- Pour les instructions : le standard AGENTS.md. La doc officielle de Claude Code est explicite : Claude Code lit CLAUDE.md, pas AGENTS.md ; si votre dépôt utilise déjà AGENTS.md pour d'autres agents, créez un CLAUDE.md qui l'importe pour que les deux outils lisent les mêmes instructions sans duplication. Codex, lui, lit AGENTS.md nativement. Claude
-- Pour les skills/workflows : les deux outils suivent le même standard ouvert Agent Skills (agentskills.io) avec un format SKILL.md identique. Les skills de Claude Code suivent le standard ouvert Agent Skills, qui fonctionne sur plusieurs outils d'IA, et côté OpenAI, les skills de Codex s'appuient sur le même standard ouvert ; un skill est un répertoire avec un fichier SKILL.md plus des scripts et références optionnels. ClaudeOpenai
-- Le point clé qui rend la mutualisation possible : les deux outils suivent les liens symboliques. C'est le mécanisme central de votre solution.
-
-## Ce qui se partage vraiment vs ce qui reste spécifique
-C'est le tableau le plus important. La réalité honnête : environ 70-80 % de votre config (le contenu « intelligent ») se mutualise totalement ; le reste (réglages techniques au format propriétaire) doit rester par-outil.
 | Brique | Claude Code | Codex | Mutualisable ? |
 |---|---|---|---|
-| Instructions / mémoire | CLAUDE.md (~/.claude/, projet, CLAUDE.local.md) | AGENTS.md (~/.codex/AGENTS.md, racine projet, par-dossier) | ✅ Oui — AGENTS.md = source unique ; CLAUDE.md l'importe | 
-| Skills | ~/.claude/skills/<nom>/SKILL.md et .claude/skills/ | ~/.agents/skills/ et <repo>/.agents/skills/ | ✅ Oui — même format SKILL.md, via symlink | 
-| Workflows / commandes | .claude/commands/ → fusionnés dans les skills | « custom prompts » dépréciés → remplacés par les skills | ✅ Oui — à exprimer comme skills | 
-| Rules (connaissance métier) | .claude/rules/*.md (auto-chargés, scoping par paths:) | pas d'équivalent direct → via AGENTS.md ou skills | ⚠️ Partiel — via symlink + référence dans AGENTS.md | 
-| Settings (modèle, hooks, env) | settings.json (JSON) | config.toml (TOML) | ❌ Non — formats incompatibles | 
-| Permissions / exécution | permissions.allow/deny dans settings.json | « Rules » = .rules en Starlark (~/.codex/rules/) | ❌ Non — concepts et formats différents | 
-| Subagents | fichiers .claude/agents/*.md | section [agents] dans config.toml | ❌ Non — formats différents | 
-| MCP | .mcp.json / settings.json (JSON) | [mcp_servers] dans config.toml (TOML) | ❌ Non — à déclarer 2×, mais depuis une source générée |
+| **Instructions / mémoire** | `CLAUDE.md` (`~/.claude/`, projet, `CLAUDE.local.md`) | `AGENTS.md` (`~/.codex/`, racine projet, par-dossier) | ✅ **Oui** — `AGENTS.md` = source unique ; `CLAUDE.md` l'importe via `@AGENTS.md` |
+| **Skills** | `~/.claude/skills/<nom>/SKILL.md` et `.claude/skills/` | `~/.agents/skills/` et `<repo>/.agents/skills/` | ✅ **Oui** — même format `SKILL.md`, partagé par symlink |
+| **Workflows / commandes** | commandes fusionnées dans les skills | « custom prompts » remplacés par les skills | ✅ **Oui** — à exprimer comme skills *(à confirmer selon versions installées)* |
+| **Règles métier (markdown)** | `.claude/rules/*.md` (auto-chargées, scoping `paths:`) | pas d'équivalent direct → via `AGENTS.md` ou skills | ⚠️ **Partiel** — symlink côté Claude + référence dans `AGENTS.md` côté Codex |
+| **Settings (modèle, env)** | `settings.json` (JSON) | `config.toml` (TOML) | ❌ **Non** — formats incompatibles → générés depuis une source abstraite |
+| **Permissions / exécution** | `permissions.allow/deny/ask` dans `settings.json` | `.rules` **Starlark** dans `.codex/rules/` | ❌ **Non** — concepts ET formats différents (voir §3) |
+| **Subagents** | `.claude/agents/*.md` | TOML (`[agents]` / fichiers TOML) | ❌ **Non** — modèles différents → générés |
+| **MCP** | `.mcp.json` / `settings.json` (JSON) | `[mcp_servers]` dans `config.toml` (TOML) | ❌ **Non** — déclaré 2×, mais depuis une source générée |
 
-⚠️ Piège à éviter absolument : le mot « Rules » est un faux ami. Les « Rules » de Codex ne sont pas l'équivalent des .claude/rules/. Les Rules de Codex servent à contrôler quelles commandes Codex peut exécuter hors du sandbox (politique d'exécution en langage Starlark) — c'est l'équivalent des permissions de Claude Code, pas de ses règles d'instruction en markdown. openai
+---
 
-## L'architecture concrète recommandée
-L'idée : un dossier canonique unique (.ai/) contenant le contenu partagé, et des symlinks qui le « branchent » dans les répertoires attendus par chaque outil. Voici le layout par projet (versionnable dans git) :
+## 3. ⚠️ Le piège « Rules » (faux ami absolu)
+
+Le mot **« Rules »** ne désigne **pas** la même chose dans les deux outils. Ne jamais mapper
+l'un sur l'autre :
+
+- **`.claude/rules/*.md` (Claude Code)** = des **instructions de comportement** en markdown,
+  qui guident l'agent (conventions, connaissances métier). Scoping conditionnel possible via
+  le frontmatter `paths:`.
+- **`.codex/rules/*.rules` (Codex)** = une **politique d'exécution en Starlark** qui filtre
+  les **commandes autorisées / promptées / interdites** hors sandbox. C'est l'équivalent des
+  **permissions** de Claude Code (`allow`/`deny`/`ask`), **pas** de ses règles d'instruction.
+
+**Conséquence d'architecture :** les règles métier markdown se mutualisent (Claude via symlink,
+Codex via référence dans `AGENTS.md`). La politique d'exécution, elle, reste **strictement
+par-outil** et se range avec les permissions / réglages de sécurité.
+
+---
+
+## 4. Architecture retenue
+
+On adopte l'approche la plus légère et la plus fidèle aux docs officielles : **un dossier
+canonique unique** + **symlinks** pour ce qui peut l'être + **génération** pour le résiduel.
+
+### 4.1 Layout par projet (versionnable dans git)
+
+```
 mon-projet/
-├── AGENTS.md                  # ① SOURCE UNIQUE des instructions (lu nativement par Codex)
-├── CLAUDE.md                  #    contient juste "@AGENTS.md" (+ notes spécifiques Claude)
+├── AGENTS.md                 # ① SOURCE UNIQUE des instructions (lu nativement par Codex)
+├── CLAUDE.md                 #    contient "@AGENTS.md" + éventuelles notes propres à Claude
 │
-├── .ai/                       # ② Dossier canonique partagé (la seule vraie copie)
-│   ├── skills/                #    SKILL.md — workflows & connaissances réutilisables
+├── .ai/                      # ② Dossier canonique partagé (la SEULE vraie copie)
+│   ├── skills/               #    SKILL.md — workflows & connaissances réutilisables
 │   │   ├── deploy/SKILL.md
-│   │   └── api-conventions/SKILL.md
-│   └── rules/                 #    règles métier en markdown (optionnel)
-│       └── testing.md
+│   │   └── code-review/SKILL.md
+│   ├── rules/                #    règles métier en markdown (comportement)
+│   │   └── testing.md
+│   └── config/               #    source abstraite (YAML) pour le résiduel non partageable
+│       ├── mcp.yaml          #      serveurs MCP (générera JSON + TOML)
+│       ├── permissions.yaml  #      permissions Claude + politique d'exécution Codex
+│       └── subagents.yaml    #      définitions de subagents (générera .md + TOML)
 │
-├── .claude/                   # ③ Côté Claude Code
-│   ├── skills  ->  ../.ai/skills     (symlink)
-│   ├── rules   ->  ../.ai/rules      (symlink)
-│   └── settings.json                 (spécifique Claude — JSON)
+├── .claude/                  # ③ Côté Claude Code
+│   ├── skills   -> ../.ai/skills    (symlink)
+│   ├── rules    -> ../.ai/rules     (symlink)
+│   ├── agents/                      (GÉNÉRÉ depuis .ai/config/subagents.yaml)
+│   └── settings.json                (GÉNÉRÉ — JSON : permissions, hooks, env)
 │
-└── .agents/                   # ④ Côté Codex
-    └── skills  ->  ../.ai/skills     (symlink)
+├── .agents/                  # ④ Côté Codex — skills (standard ouvert)
+│   └── skills   -> ../.ai/skills    (symlink)
+│
+├── .codex/                   # ⑤ Côté Codex — config & sécurité
+│   ├── config.toml                  (GÉNÉRÉ — TOML : [mcp_servers], [hooks], agents)
+│   └── rules/                       (Starlark — politique d'exécution, SPÉCIFIQUE Codex)
+│
+└── .mcp.json                 # ⑥ MCP côté Claude (GÉNÉRÉ depuis .ai/config/mcp.yaml)
+```
 
+**Points clés du layout :**
 
-Les commandes pour câbler ça (macOS / Linux) :
-bash ① CLAUDE.md pointe vers AGENTS.md (option import, recommandée et portable Windows)
+- `AGENTS.md` est la **source** des instructions ; `CLAUDE.md` ne contient que `@AGENTS.md`
+  (+ notes spécifiques Claude si besoin). Codex lit `AGENTS.md` nativement.
+- `.ai/skills/` est l'**unique copie** des skills ; `.claude/skills` et `.agents/skills`
+  ne sont que des **liens** vers elle.
+- ⚠️ Attention au double emplacement Codex : les **skills** vivent dans `.agents/skills`,
+  mais la **config** Codex (`config.toml`, `rules/`) vit dans `.codex/`. Ce ne sont pas le
+  même dossier.
+- Tous les fichiers **générés** portent un en-tête de garde (voir §6).
+
+### 4.2 Layout global (niveau `$HOME`, valable pour tous vos projets)
+
+```
+~/ai-config/                  # Hub central unique
+├── AGENTS.md                 # instructions globales (style, préférences perso)
+├── skills/                   # skills perso réutilisables partout
+│   └── commit/SKILL.md
+└── config/                   # source abstraite globale (YAML)
+    ├── mcp.yaml
+    └── permissions.yaml
+```
+
+Branché ensuite dans les emplacements attendus :
+
+- `~/.claude/skills`  → symlink vers `~/ai-config/skills`
+- `~/.agents/skills`  → symlink vers `~/ai-config/skills`  *(voir vigilance §7 : découverte fragile)*
+- `~/.claude/CLAUDE.md` → importe `@~/ai-config/AGENTS.md`
+- `~/.codex/AGENTS.md` → symlink (ou copie générée) vers `~/ai-config/AGENTS.md`
+- `~/.claude/settings.json` et `~/.codex/config.toml` → **générés** depuis `~/ai-config/config/`
+
+---
+
+## 5. Détail par brique
+
+### Instructions — `AGENTS.md`
+- Écrire **tout le contenu** dans `AGENTS.md`. Codex le lit nativement.
+- Côté Claude, deux options officielles :
+    - **import** : `@AGENTS.md` en tête de `CLAUDE.md` (recommandé, portable Windows), avec
+      possibilité d'ajouter des consignes propres à Claude en dessous ;
+    - **symlink pur** : `ln -s AGENTS.md CLAUDE.md` (évite la divergence, mais nécessite des
+      droits sous Windows).
+- **Concision obligatoire :**
+    - Codex **tronque** `AGENTS.md` au-delà de `project_doc_max_bytes`. Ce seuil est
+      **configurable** (l'exemple officiel le porte à 65536 octets), mais le défaut est bas :
+      gardez le fichier ramassé.
+    - L'import `@path` côté Claude **organise sans économiser de contexte** : les fichiers
+      importés sont chargés au lancement. Importer un énorme `AGENTS.md` charge tout.
+    - Bonne pratique partagée : **garder les instructions sous ~200 lignes**, les deux outils
+      les relisent à chaque tour et le bruit dilue les règles importantes.
+- Astuce Codex : `project_doc_fallback_filenames` permet de reconnaître d'autres noms de
+  fichiers (`TEAM_GUIDE.md`, etc.) comme instructions, si besoin.
+
+### Skills — le vrai gisement de mutualisation
+- Tout workflow multi-étapes ou connaissance réutilisable devient un **skill** : c'est le
+  **seul format strictement identique** des deux côtés (standard ouvert *Agent Skills*).
+- Un `SKILL.md` minimal compatible des deux outils ne requiert que `name` et `description`
+  en frontmatter YAML.
+- ⚠️ Claude Code propose des champs de frontmatter **étendus** (`context: fork`,
+  `allowed-tools`, `paths`, …) que **Codex ignore** : inoffensifs, mais le comportement
+  « avancé » ne sera actif que sous Claude.
+- Les deux outils **suivent la cible des liens symboliques** lors du scan des skills → un
+  seul dossier `.ai/skills/` symliké dans `.claude/skills` et `.agents/skills`.
+- Codex scanne `.agents/skills` depuis le répertoire courant jusqu'à la racine du dépôt, et
+  charge aussi les emplacements utilisateur / admin / système. Sa liste de skills exposés est
+  plafonnée (~2 % du contexte, ou ~8000 caractères) → descriptions concises et bien ciblées.
+- Désactiver un skill sans le supprimer côté Codex : entrée `[[skills.config]]` avec
+  `enabled = false` dans `~/.codex/config.toml`.
+
+### Workflows / commandes
+- Ne plus utiliser les anciens formats propriétaires : **un workflow = un skill = partagé
+  automatiquement.** *(La fusion commandes→skills côté Claude et la dépréciation des custom
+  prompts côté Codex vont dans ce sens ; à confirmer sur vos versions installées.)*
+
+### Règles métier (comportement)
+- Source : `.ai/rules/*.md`.
+- Claude : symlink `.claude/rules -> ../.ai/rules` (auto-chargées, scoping `paths:` possible).
+- Codex : pas de dossier équivalent → **référencer** ces règles depuis `AGENTS.md` pour que
+  Codex les prenne en compte.
+- ⚠️ Ne pas confondre avec les `.codex/rules/*.rules` Starlark (voir §3).
+
+### Subagents
+- Source abstraite : `.ai/config/subagents.yaml`.
+- Génération **par outil**, car les modèles diffèrent :
+    - Claude : `.claude/agents/<nom>.md` (prompt, outils, permissions).
+    - Codex : TOML (`name`, `description`, `developer_instructions`, modèle, sandbox, MCP…).
+- Pas de partage de fichier possible — seulement une source commune projetée.
+
+### MCP (outils externes)
+- Source abstraite : `.ai/config/mcp.yaml`.
+- Génération : `.mcp.json` (Claude) **et** `[mcp_servers.<id>]` dans `config.toml` (Codex).
+- ⚠️ Correction d'une erreur fréquente : il n'existe **pas** de `.mcp.json` global unique lu
+  par les deux. Codex déclare ses serveurs en **TOML**. La mutualisation se fait au niveau de
+  la **source**, pas du fichier.
+- **Secrets hors dépôt** : tokens, clés API, endpoints privés via variables d'environnement,
+  helpers, ou config locale non versionnée.
+
+### Hooks
+- Source : scripts partagés (lint, tests, sécurité, formatage) dans `.ai/` (ou
+  `~/ai-config/hooks/` au global), invoqués par **chemin** des deux côtés.
+- Les **événements se ressemblent** conceptuellement, mais les **schémas diffèrent** : ne pas
+  tenter un fichier hook unique chargé directement par les deux.
+    - Claude : hooks dans `settings.json`.
+    - Codex : `hooks.json` ou `[hooks]` dans `config.toml`.
+- → On partage les **scripts**, on génère le **câblage** par outil.
+
+### Settings, permissions, politique d'exécution
+- Aucun partage de fichier (JSON vs TOML vs Starlark).
+- Source abstraite unique (`.ai/config/permissions.yaml`) → un petit générateur produit
+  `settings.json` (permissions Claude + hooks) **et** la projection Codex (`config.toml` +
+  `.codex/rules/` Starlark pour la politique d'exécution).
+
+---
+
+## 6. Mise en place (commandes)
+
+### macOS / Linux
+
+```bash
+# ① CLAUDE.md importe AGENTS.md (portable, recommandé)
 printf '@AGENTS.md\n\n## Spécifique Claude Code\n' > CLAUDE.md
 
-② Branche le dossier skills canonique dans les 2 outils
-mkdir -p .ai/skills .ai/rules
+# ② Dossier canonique + skills partagés dans les 2 outils
+mkdir -p .ai/skills .ai/rules .ai/config
 ln -s ../.ai/skills .claude/skills
 ln -s ../.ai/skills .agents/skills
 
-③ Branche les règles markdown côté Claude (Codex les lira via AGENTS.md)
+# ③ Règles markdown côté Claude (Codex les lira via AGENTS.md)
 ln -s ../.ai/rules .claude/rules
 
-
-Pour la config globale (valable sur tous vos projets), même logique au niveau de votre $HOME :
-bash# Un dossier maître unique pour tous vos skills perso
+# ④ Global ($HOME), une fois pour tous les projets
 mkdir -p ~/ai-config/skills
-ln -s ~/ai-config/skills ~/.claude/skills      # Claude Code (perso)
-ln -s ~/ai-config/skills ~/.agents/skills      # Codex (perso)
-
-Instructions globales : AGENTS.md global + CLAUDE.md qui l'importe
+ln -s ~/ai-config/skills ~/.claude/skills
+ln -s ~/ai-config/skills ~/.agents/skills
 ln -s ~/ai-config/AGENTS.md ~/.codex/AGENTS.md
 printf '@~/ai-config/AGENTS.md\n' > ~/.claude/CLAUDE.md
+```
 
+### Windows
+Un symlink exige les droits **Administrateur** ou le **mode développeur**. Préférer :
+- **Instructions** : l'import `@AGENTS.md` dans `CLAUDE.md` (pas de symlink).
+- **Skills / rules** : des **junctions** (`mklink /J`) ou des **copies générées** par script.
 
-C'est confirmé côté officiel : Codex lit les skills depuis les emplacements dépôt, utilisateur, admin et système, et supporte les dossiers de skills en symlink en suivant la cible du lien. Et côté Claude Code, le répertoire .claude/rules/ supporte les symlinks, ce qui permet de maintenir un jeu de règles partagé et de le lier dans plusieurs projets.
+```powershell
+# Import (pas de droits requis)
+"@AGENTS.md`n`n## Spécifique Claude Code" | Out-File CLAUDE.md -Encoding utf8
 
-## Le détail par brique
-Instructions (AGENTS.md) — Écrivez tout dans AGENTS.md. Pour Claude, deux options officielles : l'import @AGENTS.md en tête du CLAUDE.md (vous pouvez ajouter des consignes propres à Claude en dessous), ou un symlink pur ln -s AGENTS.md CLAUDE.md. Sur Windows, créer un symlink exige les droits Administrateur ou le mode développeur, donc préférez l'import @AGENTS.md. Notez que Codex tronque AGENTS.md à 32768 octets par défaut (project_doc_max_bytes) embarqués dans les instructions du premier tour — gardez le fichier concis. ClaudeOpenai
+# Junctions pour les dossiers (alternative au symlink)
+cmd /c mklink /J .claude\skills ..\.ai\skills
+cmd /c mklink /J .agents\skills ..\.ai\skills
+cmd /c mklink /J .claude\rules  ..\.ai\rules
+```
 
-Skills (le vrai gisement de mutualisation) — Tout ce qui est procédure multi-étapes ou connaissance réutilisable doit devenir un skill, car c'est le seul format strictement identique entre les deux. Un SKILL.md minimal compatible des deux côtés ne requiert que name et description en frontmatter YAML. Attention à un détail : Claude Code propose des champs de frontmatter étendus (context: fork, allowed-tools, paths, etc.) que Codex ignorera — ils restent inoffensifs, mais le comportement « avancé » ne sera actif que sous Claude.
+### Générateur (résiduel non partageable)
+Un script (`sync` en `bash` ou `PowerShell`) prend en charge :
+1. Valider les YAML de `.ai/config/`.
+2. Générer `AGENTS.md` (si assemblé depuis des fragments) et mettre à jour `CLAUDE.md`.
+3. Poser/rafraîchir les symlinks (ou junctions/copies sous Windows) des skills.
+4. Générer `settings.json`, `.mcp.json`, `config.toml`, `.codex/rules/`.
+5. **Refuser d'écraser** un fichier modifié manuellement si l'en-tête `GENERATED` manque.
 
-Workflows / commandes — N'utilisez plus les anciens formats propriétaires. Codex marque désormais les custom prompts comme dépréciés et recommande les skills pour les instructions réutilisables, et côté Claude les commandes personnalisées ont été fusionnées dans les skills. Donc : un workflow = un skill = partagé automatiquement. AiopsschoolClaude
+En-tête à insérer dans **tout fichier généré** :
 
-Settings, permissions, subagents, MCP — Ici, pas de partage de fichier possible (JSON vs TOML vs Starlark vs frontmatter). La bonne pratique « sans duplication conceptuelle » : maintenir une source unique abstraite (par ex. un fichier YAML décrivant vos serveurs MCP, vos permissions, vos subagents) et un petit script qui génère settings.json ET config.toml à partir d'elle. Vous ne dupliquez pas la connaissance, seulement sa projection dans deux formats.
+```
+<!-- GENERATED FROM .ai/config — DO NOT EDIT DIRECTLY -->
+```
 
-## En résumé
-Vous ne pourrez jamais avoir un seul fichier physique pour tout, parce que les réglages techniques utilisent des formats incompatibles par conception. Mais vous pouvez atteindre zéro duplication du contenu qui compte :
+---
 
-- AGENTS.md = source unique des instructions ; CLAUDE.md l'importe.
-- Un dossier skills/ canonique unique, symliké dans .claude/skills et .agents/skills → couvre skills, workflows et la plupart des « règles ».
-- Pour le résiduel divergent (settings/MCP/permissions/subagents), une source abstraite unique générant les deux formats.
+## 7. Gouvernance & versioning
 
-Si vous voulez, je peux vous générer un script de bootstrap (setup.sh + son équivalent PowerShell pour Windows) qui crée toute cette arborescence, pose les symlinks et installe un générateur settings.json/config.toml à partir d'un YAML — vous n'auriez qu'à le lancer dans vos projets. Dites-moi sous quel OS vous travaillez principalement et si vous voulez la version « projet », « globale », ou les deux.
+| Catégorie | Où | Exemples |
+|---|---|---|
+| **À versionner (projet)** | dans le repo | règles projet, skills projet, instructions projet, hooks non secrets |
+| **Niveau utilisateur** | `~/ai-config/`, non partagé en équipe | préférences perso, style de réponse, modèles par défaut, chemins locaux |
+| **Hors Git** | jamais commité | tokens, clés API, endpoints privés, config machine |
+| **Généré** | reconstruit par script | tout ce qui traduit la source commune en format Claude ou Codex |
 
+---
 
-# Gemini 
-Faire cohabiter Claude Code (Anthropic) et Codex (OpenAI) en appliquant le principe DRY (Don't Repeat Yourself) est une excellente initiative. Bien que ces deux CLI utilisent des formats et des chemins de configuration différents (fichiers JSON/MD pour Claude, fichiers TOML/MD pour Codex), il est tout à fait possible de centraliser votre logique métier, vos règles et vos agents pour qu'ils s'abreuvent à la même source.
+## 8. Pièges & points de vigilance (récapitulatif)
 
-Voici la stratégie architecturale pour unifier ces deux environnements à travers tous vos projets, basée sur les documentations officielles récentes des deux outils.
+- **« Rules » est un faux ami** : Claude = comportement (markdown) ; Codex = politique
+  d'exécution (Starlark). Voir §3.
+- **`.mcp.json` global unique = faux** pour Codex (TOML). Mutualiser la **source**, pas le fichier.
+- **Découverte des skills Codex fragile** : des utilisateurs rapportent que `~/.agents/skills`
+  n'est plus toujours découvert ; certains guides citent `~/.codex/skills`. Se fier à
+  `.agents/skills` (officiel) **et tester après installation** sur votre version. Redémarrer
+  Codex si un skill n'apparaît pas.
+- **Troncature `AGENTS.md`** : seuil `project_doc_max_bytes` configurable mais bas par défaut.
+  Garder le fichier concis (< ~200 lignes).
+- **Import `@path` ≠ économie de contexte** : les imports chargent au lancement.
+- **Frontmatter avancé de skills ignoré par Codex** : `context:`, `allowed-tools`, `paths`…
+  ne s'activent que sous Claude.
+- **Symlinks sous Windows** : droits requis → préférer import + junctions/copies.
+- **`PROJECT_CONTEXT.md` à éviter** : approche par fichier custom « à lire » (proposée par
+  une des réponses) — moins fiable que l'import natif `@AGENTS.md`. Écarté ici.
+- **Une tâche par session** : limiter la pollution de contexte (commune aux deux outils).
 
-#1. Le Contexte de Projet Universel (Project Scope)
-Plutôt que d'écrire vos règles métier en double dans le CLAUDE.md (pour Anthropic) et dans les couches de configuration .codex/ (pour OpenAI), créez un fichier de vérité absolu à la racine de chaque projet.
+---
 
-- L'approche : Créez un fichier PROJECT_CONTEXT.md à la racine. Ce fichier contiendra l'architecture, les conventions de code, le contexte métier et les workflows spécifiques au projet.
-- Pour Claude Code : Dans votre fichier CLAUDE.md, ne mettez qu'une instruction de redirection :
-Contexte global
-Lis impérativement le fichier `PROJECT_CONTEXT.md` pour comprendre les règles, l'architecture et les standards de ce projet avant de planifier la moindre tâche.
-- Pour OpenAI Codex : Dans votre fichier de configuration local (ou votre AGENTS.md si vous utilisez les agents par défaut du répertoire de travail), ajoutez une règle système similaire exigeant la lecture prioritaire du PROJECT_CONTEXT.md.
+## 9. Annexe — Synthèse des points relevés par chaque IA
 
-#2. Le Hub Centralisé et les Liens Symboliques (Symlinks)
-Pour partager les configurations globales (agents, "skills", paramètres persistants) entre vos différents projets et entre les deux IA, vous devez sortir la donnée des dossiers natifs (~/.claude/ et ~/.codex/) pour la placer dans un Hub central.
+Pour ne rien perdre des trois analyses sources.
 
-- Créer le Hub : Créez un dossier global sur votre machine, par exemple ~/ai-config-hub/.
-~/ai-config-hub/
-├── skills/          # Vos workflows réutilisables (ex: deploy_checklist.md)
-├── agents/          # Définitions de vos sous-agents spécialisés
-└── hooks/           # Scripts d'automatisation exécutables (bash, python, node)
-- Lier Claude Code : Claude cherche ses agents et skills dans ~/.claude/agents/ et ~/.claude/skills/. Supprimez ces dossiers s'ils existent et créez des liens symboliques pour qu'ils pointent vers votre Hub :
-Bash
-ln -s ~/ai-config-hub/skills ~/.claude/skills
-ln -s ~/ai-config-hub/agents ~/.claude/agents
-- Lier Codex : Codex permet de définir le chemin de configuration des agents via config.toml (par exemple agents.<name>.config_file). Configurez votre ~/.codex/config.toml global pour faire pointer tous les profils d'agents vers le dossier partagé ~/ai-config-hub/agents/.
+### Réponse « Codex »
+- Pas de fichier magique : créer une **source de vérité neutre** + adaptateurs minces.
+- Structure `~/ai-agent-config/` avec `common/` (instructions, skills, agents, mcp, hooks,
+  workflows) et `adapters/{claude,codex}/`.
+- Mapping concret par brique (instructions, rules, skills, subagents, MCP, hooks).
+- **Script de sync** (PowerShell sous Windows) qui valide les YAML, génère `AGENTS.md`,
+  `CLAUDE.md`, `config.toml`, `settings.json`, `.mcp.json`, et pose junctions/copies.
+- En-tête `GENERATED ... DO NOT EDIT DIRECTLY`.
+- Gouvernance : à versionner / niveau utilisateur / hors Git / à générer.
+- Cœur de la solution : **standardiser skills + MCP, générer le reste.**
+- *Retenu :* la séparation source/adaptateurs, le script de sync, l'en-tête de garde, la
+  matrice de gouvernance. *Allégé :* on privilégie symlinks plutôt que tout générer.
 
-#3. Mutualisation des Outils via MCP (Model Context Protocol)
-L'écosystème IA converge actuellement vers le standard MCP pour se connecter à des outils externes (GitHub, bases de données, Sentry, navigateurs headless). C'est le moyen le plus puissant d'éviter la duplication des outils techniques.
-- Ne configurez pas de petits scripts ou d'outils spécifiques en dur dans les settings isolés de Claude ou de Codex.
-- Gérez vos outils via un fichier global .mcp.json (ou configurez un serveur MCP local unique) et demandez aux deux CLI de s'y connecter. Ainsi, l'ajout d'une intégration externe (comme un accès direct à Jira ou Slack) profitera aux deux IA instantanément et avec les mêmes droits.
+### Réponse « Claude Code »
+- Convergence vers deux standards : **`AGENTS.md`** (instructions) et **`SKILL.md`** (skills).
+- Claude Code lit `CLAUDE.md` (pas `AGENTS.md`) → `CLAUDE.md` **importe** `@AGENTS.md`.
+- ~70–80 % de la config se mutualise ; le reste reste par-outil.
+- **Tableau** mutualisable / spécifique (repris en §2).
+- Les deux outils **suivent les symlinks** → mécanisme central.
+- Détails fins : troncature `AGENTS.md` (`project_doc_max_bytes`), frontmatter avancé ignoré
+  par Codex, `import` qui n'économise pas de contexte, workflows = skills.
+- Résiduel (settings/MCP/permissions/subagents) : **source abstraite unique → 2 formats.**
+- *Retenu :* c'est l'ossature de l'architecture de ce document (la plus exacte).
 
-#4. Harmonisation des Hooks (Scripts d'automatisation)
-Les deux outils permettent de déclencher des "hooks" (scripts qui s'exécutent lors d'événements spécifiques, comme avant un commit, au lancement d'une session, ou lors d'une utilisation d'outil).
-- Stockez vos scripts de vérification (linting, tests de sécurité, formatage) dans ~/ai-config-hub/hooks/.
-- Dans ~/.claude/settings.json et dans le config.toml de Codex, référencez les chemins absolus vers ces mêmes scripts. La logique d'exécution restera la même quel que soit le modèle IA qui déclenche l'action.
+### Réponse « Gemini »
+- **Contexte universel** via un `PROJECT_CONTEXT.md` racine + redirection. *(Écarté : moins
+  fiable que l'import natif `@AGENTS.md`.)*
+- **Hub central** `~/ai-config-hub/` (`skills/`, `agents/`, `hooks/`) + symlinks vers
+  `~/.claude/` — *idée retenue pour le global (§4.2).*
+- Codex : pointer les profils d'agents via `config.toml`.
+- **MCP** comme convergence d'écosystème — *idée juste, mais le `.mcp.json` global unique est
+  une erreur pour Codex (corrigé en §5 / §8).*
+- **Hooks** : scripts partagés référencés par **chemins absolus** des deux côtés — *retenu.*
+- Conclusion : séparer « l'intention » (hub + contexte) des « moteurs » (les CLI), qui
+  deviennent de simples routeurs — *principe conservé.*
 
-En séparant "l'intention" (stockée dans votre Hub et votre contexte universel) des "moteurs" (Claude Code ou Codex Desktop/CLI), les fichiers de configuration spécifiques à chaque IA se transforment en simples routeurs très légers.
+---
 
-Souhaites-tu que je te génère un script Bash automatisé pour créer instantanément cette arborescence Hub et établir tous les liens symboliques vers les dossiers de Claude et de Codex sur ta machine ?
+## 10. Sources officielles
+
+- Claude Code — mémoire / `CLAUDE.md` / imports : <https://code.claude.com/docs/en/memory>
+- Claude Code — settings : <https://code.claude.com/docs/en/settings>
+- Claude Code — skills : <https://code.claude.com/docs/en/skills>
+- Claude Code — subagents : <https://code.claude.com/docs/en/sub-agents>
+- Claude Code — hooks : <https://code.claude.com/docs/en/hooks>
+- Codex — config : <https://developers.openai.com/codex/config-reference>
+- Codex — config avancée : <https://developers.openai.com/codex/config-advanced>
+- Codex — skills : <https://developers.openai.com/codex/skills>
+- Codex — instructions `AGENTS.md` : <https://developers.openai.com/codex/guides/agents-md>
+- Codex — rules (Starlark) : <https://developers.openai.com/codex/rules>
+- Codex — subagents : <https://developers.openai.com/codex/subagents>
