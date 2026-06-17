@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
-# PostToolUse(Write|Edit|MultiEdit): append an entry to a local, gitignored changelog.
+# PostToolUse file edits: append each touched file to a local, gitignored changelog.
+# Handles Claude (tool_input.file_path) and Codex (apply_patch tool_input.command).
 # Never blocks (always exit 0).
 set -euo pipefail
-HOOK_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/hooks"
+# Portable project root: Claude sets CLAUDE_PROJECT_DIR; Codex does not, so fall back to git.
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || echo .)}"
+HOOK_DIR="$PROJECT_DIR/.claude/hooks"
 source "$HOOK_DIR/lib/json.sh"
-LOG="${CLAUDE_PROJECT_DIR:-.}/.claude/changes.local.log"
+LOG="$PROJECT_DIR/.claude/changes.local.log"
 payload="$(cat)"
-file="$(printf '%s' "$payload" | json_field '.tool_input.file_path')"
 tool="$(printf '%s' "$payload" | json_field '.tool_name')"
-[ -z "${file:-}" ] && exit 0
-printf '%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${tool:-?}" "$file" >> "$LOG"
+ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  printf '%s\t%s\t%s\n' "$ts" "${tool:-?}" "$file" >> "$LOG"
+done < <(printf '%s' "$payload" | hook_changed_files)
 exit 0

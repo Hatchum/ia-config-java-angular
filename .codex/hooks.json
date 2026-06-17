@@ -1,0 +1,35 @@
+{
+  "_generated": "GENERATED FROM .ai/config — DO NOT EDIT DIRECTLY",
+  "PreToolUse": [
+    {
+      "matcher": "^Bash$",
+      "hooks": [
+        {
+          "type": "command",
+          "timeout": 30,
+          "statusMessage": "Linting staged files before commit",
+          "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/pre-commit-lint.sh\""
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "^apply_patch$",
+      "hooks": [
+        {
+          "type": "command",
+          "timeout": 60,
+          "statusMessage": "Linting edited files",
+          "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/lint-format.sh\""
+        },
+        {
+          "type": "command",
+          "timeout": 30,
+          "statusMessage": "Logging file change",
+          "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/log-changes.sh\""
+        }
+      ]
+    }
+  ]
+}

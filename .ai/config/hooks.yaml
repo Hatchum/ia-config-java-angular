@@ -1,0 +1,61 @@
+# Source of truth for event hooks — DO NOT import directly into tools.
+# Generator: scripts/sync-config.ps1  →  scripts/sync-config.py
+# Outputs:
+#   .claude/settings.json  (hooks block — JSON)
+#   .codex/hooks.json      (Codex hooks — same JSON schema, Codex-native location)
+#
+# ── Why two sections (unlike permissions, which are merged) ──────────────────
+# Claude and Codex share the SAME hook model (events PreToolUse/PostToolUse,
+# matcher + hooks[], stdin JSON, exit-code-2 to block). BUT the `matcher`
+# vocabulary differs: Claude edits files via Write|Edit|MultiEdit, Codex via
+# `apply_patch`. And the project-dir reference differs (CLAUDE_PROJECT_DIR vs
+# git resolution). So we share the *scripts* in .claude/hooks/ and generate the
+# *wiring* per tool. The scripts self-resolve the project root via git when
+# CLAUDE_PROJECT_DIR is unset, so the same script runs under both tools.
+
+# ── Claude Code wiring ───────────────────────────────────────────────────────
+claude:
+  PostToolUse:
+    - matcher: "Write|Edit|MultiEdit"
+      commands:
+        - type: command
+          shell: bash
+          command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/lint-format.sh"'
+        - type: command
+          shell: bash
+          command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/log-changes.sh"'
+  PreToolUse:
+    - matcher: "Bash"
+      commands:
+        - type: command
+          if: "Bash(git commit:*)"
+          shell: bash
+          command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-commit-lint.sh"'
+
+# ── Codex wiring ─────────────────────────────────────────────────────────────
+# matcher is a regex against tool_name. Codex's file-edit tool is `apply_patch`
+# (not Write/Edit/MultiEdit). Codex has no CLAUDE_PROJECT_DIR → resolve via git.
+codex:
+  PreToolUse:
+    # Bash command hook: same tool name + stdin shape as Claude → ports cleanly.
+    - matcher: "^Bash$"
+      commands:
+        - type: command
+          command: 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/pre-commit-lint.sh"'
+          timeout: 30
+          statusMessage: "Linting staged files before commit"
+  PostToolUse:
+    # File-edit hook: Codex emits `apply_patch` with the patch text in
+    # tool_input.command. The shared scripts now extract touched files from BOTH
+    # shapes (tool_input.file_path for Claude, apply_patch markers for Codex) via
+    # hook_changed_files / Get-HookChangedFiles — so the same scripts run here.
+    - matcher: "^apply_patch$"
+      commands:
+        - type: command
+          command: 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/lint-format.sh"'
+          timeout: 60
+          statusMessage: "Linting edited files"
+        - type: command
+          command: 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/log-changes.sh"'
+          timeout: 30
+          statusMessage: "Logging file change"

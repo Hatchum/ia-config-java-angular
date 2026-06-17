@@ -16,10 +16,10 @@ de Codex). Chercher un « fichier magique » est une impasse.
 
 La stratégie retenue sépare deux natures de configuration :
 
-1. **Le contenu intelligent** — instructions, skills, workflows, règles métier, déclarations
-   d'outils. C'est ~70–80 % de la config, et il se mutualise **totalement** via deux
-   mécanismes natifs : l'**import `@AGENTS.md`** (instructions) et le **standard ouvert
-   `SKILL.md` + liens symboliques** (skills).
+1. **Le contenu intelligent** — instructions, skills, workflows, règles métier, intégration
+   d'outils externes via CLI. C'est ~80–85 % de la config, et il se mutualise **totalement**
+   via deux mécanismes natifs : l'**import `@AGENTS.md`** (instructions) et le **standard
+   ouvert `SKILL.md` + liens symboliques** (skills + CLI).
 2. **Les réglages techniques** — `settings.json`, `config.toml`, permissions, politique
    d'exécution, hooks, subagents. Ils ne peuvent pas partager un fichier, mais on évite la
    **duplication de connaissance** en maintenant **une source abstraite unique** (YAML) qui
@@ -41,7 +41,7 @@ de simples **routeurs légers** vers cette intention.
 | **Settings (modèle, env)** | `settings.json` (JSON) | `config.toml` (TOML) | ❌ **Non** — formats incompatibles → générés depuis une source abstraite |
 | **Permissions / exécution** | `permissions.allow/deny/ask` dans `settings.json` | `.rules` **Starlark** dans `.codex/rules/` | ❌ **Non** — concepts ET formats différents (voir §3) |
 | **Subagents** | `.claude/agents/*.md` | TOML (`[agents]` / fichiers TOML) | ❌ **Non** — modèles différents → générés |
-| **MCP** | `.mcp.json` / `settings.json` (JSON) | `[mcp_servers]` dans `config.toml` (TOML) | ❌ **Non** — déclaré 2×, mais depuis une source générée |
+| **Outils externes** | Skills invoquant des CLI (`gh`, `mvn`, `npm`…) | Skills invoquant des CLI (identique) | ✅ **Oui** — un skill = une CLI = partagé automatiquement (voir §5) |
 
 ---
 
@@ -82,7 +82,6 @@ mon-projet/
 │   ├── rules/                #    règles métier en markdown (comportement)
 │   │   └── testing.md
 │   └── config/               #    source abstraite (YAML) pour le résiduel non partageable
-│       ├── mcp.yaml          #      serveurs MCP (générera JSON + TOML)
 │       ├── permissions.yaml  #      permissions Claude + politique d'exécution Codex
 │       └── subagents.yaml    #      définitions de subagents (générera .md + TOML)
 │
@@ -95,11 +94,9 @@ mon-projet/
 ├── .agents/                  # ④ Côté Codex — skills (standard ouvert)
 │   └── skills   -> ../.ai/skills    (symlink)
 │
-├── .codex/                   # ⑤ Côté Codex — config & sécurité
-│   ├── config.toml                  (GÉNÉRÉ — TOML : [mcp_servers], [hooks], agents)
-│   └── rules/                       (Starlark — politique d'exécution, SPÉCIFIQUE Codex)
-│
-└── .mcp.json                 # ⑥ MCP côté Claude (GÉNÉRÉ depuis .ai/config/mcp.yaml)
+└── .codex/                   # ⑤ Côté Codex — config & sécurité
+    ├── config.toml                  (GÉNÉRÉ — TOML : [hooks], agents)
+    └── rules/                       (Starlark — politique d'exécution, SPÉCIFIQUE Codex)
 ```
 
 **Points clés du layout :**
@@ -190,29 +187,46 @@ Branché ensuite dans les emplacements attendus :
     - Codex : TOML (`name`, `description`, `developer_instructions`, modèle, sandbox, MCP…).
 - Pas de partage de fichier possible — seulement une source commune projetée.
 
-### MCP (outils externes)
-- Source abstraite : `.ai/config/mcp.yaml`.
-- Génération : `.mcp.json` (Claude) **et** `[mcp_servers.<id>]` dans `config.toml` (Codex).
-- ⚠️ Correction d'une erreur fréquente : il n'existe **pas** de `.mcp.json` global unique lu
-  par les deux. Codex déclare ses serveurs en **TOML**. La mutualisation se fait au niveau de
-  la **source**, pas du fichier.
-- **Secrets hors dépôt** : tokens, clés API, endpoints privés via variables d'environnement,
-  helpers, ou config locale non versionnée.
+### Outils externes — Skills + CLI
+- **Principe :** pas de serveur MCP à maintenir. Chaque outil externe (forge Git, registre,
+  CI…) est encapsulé dans un **skill** qui décrit comment invoquer sa **CLI** (`gh`, `mvn`,
+  `npm`, `aws`, `docker`…) via des commandes shell standards.
+- Un skill = un outil = un `SKILL.md` dans `.ai/skills/<nom>/` → partagé automatiquement des
+  deux côtés par symlink (format identique Claude / Codex).
+- Avantages : aucun processus démon à démarrer, versionnable dans le dépôt, portable Windows,
+  pas de format JSON/TOML à générer.
+- **Secrets hors dépôt** : tokens et clés API positionnés en variables d'environnement ; les
+  skills y font référence par nom sans les stocker.
 
-### Hooks
-- Source : scripts partagés (lint, tests, sécurité, formatage) dans `.ai/` (ou
-  `~/ai-config/hooks/` au global), invoqués par **chemin** des deux côtés.
-- Les **événements se ressemblent** conceptuellement, mais les **schémas diffèrent** : ne pas
-  tenter un fichier hook unique chargé directement par les deux.
-    - Claude : hooks dans `settings.json`.
-    - Codex : `hooks.json` ou `[hooks]` dans `config.toml`.
-- → On partage les **scripts**, on génère le **câblage** par outil.
+### Hooks  ✅ implémenté
+- Source de câblage : `.ai/config/hooks.yaml` (sections `claude:` et `codex:`).
+- Scripts partagés dans `.claude/hooks/` (paires `.sh` + `.ps1`), rendus **portables** :
+  ils résolvent la racine projet via `${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel)}`,
+  donc le **même script tourne sous Claude et Codex**.
+- ⚠️ Modèle d'événements **quasi identique** entre les deux (mêmes `PreToolUse`/`PostToolUse`,
+  `matcher` + `hooks[]`, stdin JSON, exit code 2 pour bloquer) — **mais** on **ne fusionne pas**
+  le câblage : le **vocabulaire des `matcher` diffère** (Claude édite via `Write|Edit|MultiEdit`,
+  Codex via `apply_patch`). On partage donc les **scripts**, on génère le **câblage par outil**.
+- Génération : `settings.json` (bloc `hooks`, Claude) **et** `.codex/hooks.json` (même schéma
+  JSON, emplacement natif Codex). Le générateur filtre les champs par outil (`shell`/`if` →
+  Claude ; `timeout`/`statusMessage` → Codex) pour éviter toute fuite.
+- ✅ Divergence de payload résolue : les scripts d'édition extraient les fichiers touchés des
+  **deux formes** via `hook_changed_files` (bash) / `Get-HookChangedFiles` (PowerShell) —
+  `tool_input.file_path` (Claude) **et** marqueurs `*** Add/Update/Move to File:` du patch
+  `apply_patch` (Codex). `json_field` est robuste (jq → Python → grep) car le `command`
+  `apply_patch` est multi-ligne ; sous Windows l'interpréteur Python réellement exécutable est
+  détecté (le `python3` du Store stub est écarté).
 
-### Settings, permissions, politique d'exécution
+### Settings, permissions, politique d'exécution  ✅ implémenté
 - Aucun partage de fichier (JSON vs TOML vs Starlark).
-- Source abstraite unique (`.ai/config/permissions.yaml`) → un petit générateur produit
-  `settings.json` (permissions Claude + hooks) **et** la projection Codex (`config.toml` +
-  `.codex/rules/` Starlark pour la politique d'exécution).
+- Source abstraite **unique et fusionnée** : `.ai/config/permissions.yaml` contient **une seule
+  liste canonique** (format Claude `Tool(pattern)`) sous la clé `permissions:`.
+- Le générateur produit :
+    - `settings.json` (permissions Claude, liste verbatim) ;
+    - `.codex/rules/execution-policy.rules` (Starlark) **dérivé** de la même liste : seules les
+      entrées `Bash(...)` sont projetées (`Bash(<cmd>*)`/`Bash(<cmd>:*)` → sous-chaîne `<cmd>`),
+      les `Read(...)`/`Edit(...)` restent propres à Claude ;
+    - `.codex/config.toml` (pointeur vers la politique d'exécution + `[model]`/`[sandbox]` à régler).
 
 ---
 
@@ -255,18 +269,27 @@ cmd /c mklink /J .agents\skills ..\.ai\skills
 cmd /c mklink /J .claude\rules  ..\.ai\rules
 ```
 
-### Générateur (résiduel non partageable)
-Un script (`sync` en `bash` ou `PowerShell`) prend en charge :
-1. Valider les YAML de `.ai/config/`.
-2. Générer `AGENTS.md` (si assemblé depuis des fragments) et mettre à jour `CLAUDE.md`.
-3. Poser/rafraîchir les symlinks (ou junctions/copies sous Windows) des skills.
-4. Générer `settings.json`, `.mcp.json`, `config.toml`, `.codex/rules/`.
-5. **Refuser d'écraser** un fichier modifié manuellement si l'en-tête `GENERATED` manque.
+### Générateur (résiduel non partageable)  ✅ implémenté
+Script `scripts/sync-config.py` (wrappers `scripts/sync-config.ps1` et `.cmd`) — Python 3,
+auto-bootstrap de PyYAML s'il manque. Lancement : `scripts\sync-config.ps1`.
 
-En-tête à insérer dans **tout fichier généré** :
+Ce qu'il fait aujourd'hui :
+1. **Valide** les sources YAML de `.ai/config/` (clé `permissions:` présente, listes bien typées).
+2. **Génère** depuis `permissions.yaml` + `hooks.yaml` :
+    - `.claude/settings.json` (permissions + hooks Claude) ;
+    - `.codex/rules/execution-policy.rules` (Starlark, dérivé des permissions) ;
+    - `.codex/config.toml` (pointeur politique d'exécution) ;
+    - `.codex/hooks.json` (hooks Codex).
+3. **Refuse d'écraser** un fichier sans le marqueur `GENERATED FROM .ai/config` (protection
+   d'un fichier édité à la main).
+
+Reste à ajouter au générateur (voir §11) : `subagents.yaml` → `.claude/agents/` + TOML Codex ;
+assemblage `AGENTS.md`/`CLAUDE.md` ; pose des symlinks/junctions.
+
+Marqueur inséré dans **tout fichier généré** (commentaire ou clé JSON `"_generated"`) :
 
 ```
-<!-- GENERATED FROM .ai/config — DO NOT EDIT DIRECTLY -->
+GENERATED FROM .ai/config — DO NOT EDIT DIRECTLY
 ```
 
 ---
@@ -286,7 +309,6 @@ En-tête à insérer dans **tout fichier généré** :
 
 - **« Rules » est un faux ami** : Claude = comportement (markdown) ; Codex = politique
   d'exécution (Starlark). Voir §3.
-- **`.mcp.json` global unique = faux** pour Codex (TOML). Mutualiser la **source**, pas le fichier.
 - **Découverte des skills Codex fragile** : des utilisateurs rapportent que `~/.agents/skills`
   n'est plus toujours découvert ; certains guides citent `~/.codex/skills`. Se fier à
   `.agents/skills` (officiel) **et tester après installation** sur votre version. Redémarrer
@@ -309,14 +331,14 @@ Pour ne rien perdre des trois analyses sources.
 
 ### Réponse « Codex »
 - Pas de fichier magique : créer une **source de vérité neutre** + adaptateurs minces.
-- Structure `~/ai-agent-config/` avec `common/` (instructions, skills, agents, mcp, hooks,
+- Structure `~/ai-agent-config/` avec `common/` (instructions, skills, agents, hooks,
   workflows) et `adapters/{claude,codex}/`.
-- Mapping concret par brique (instructions, rules, skills, subagents, MCP, hooks).
+- Mapping concret par brique (instructions, rules, skills, subagents, hooks).
 - **Script de sync** (PowerShell sous Windows) qui valide les YAML, génère `AGENTS.md`,
-  `CLAUDE.md`, `config.toml`, `settings.json`, `.mcp.json`, et pose junctions/copies.
+  `CLAUDE.md`, `config.toml`, `settings.json`, et pose junctions/copies.
 - En-tête `GENERATED ... DO NOT EDIT DIRECTLY`.
 - Gouvernance : à versionner / niveau utilisateur / hors Git / à générer.
-- Cœur de la solution : **standardiser skills + MCP, générer le reste.**
+- Cœur de la solution : **standardiser skills + CLI, générer le reste.**
 - *Retenu :* la séparation source/adaptateurs, le script de sync, l'en-tête de garde, la
   matrice de gouvernance. *Allégé :* on privilégie symlinks plutôt que tout générer.
 
@@ -328,7 +350,7 @@ Pour ne rien perdre des trois analyses sources.
 - Les deux outils **suivent les symlinks** → mécanisme central.
 - Détails fins : troncature `AGENTS.md` (`project_doc_max_bytes`), frontmatter avancé ignoré
   par Codex, `import` qui n'économise pas de contexte, workflows = skills.
-- Résiduel (settings/MCP/permissions/subagents) : **source abstraite unique → 2 formats.**
+- Résiduel (settings/permissions/subagents) : **source abstraite unique → 2 formats.**
 - *Retenu :* c'est l'ossature de l'architecture de ce document (la plus exacte).
 
 ### Réponse « Gemini »
@@ -337,8 +359,6 @@ Pour ne rien perdre des trois analyses sources.
 - **Hub central** `~/ai-config-hub/` (`skills/`, `agents/`, `hooks/`) + symlinks vers
   `~/.claude/` — *idée retenue pour le global (§4.2).*
 - Codex : pointer les profils d'agents via `config.toml`.
-- **MCP** comme convergence d'écosystème — *idée juste, mais le `.mcp.json` global unique est
-  une erreur pour Codex (corrigé en §5 / §8).*
 - **Hooks** : scripts partagés référencés par **chemins absolus** des deux côtés — *retenu.*
 - Conclusion : séparer « l'intention » (hub + contexte) des « moteurs » (les CLI), qui
   deviennent de simples routeurs — *principe conservé.*
@@ -358,3 +378,38 @@ Pour ne rien perdre des trois analyses sources.
 - Codex — instructions `AGENTS.md` : <https://developers.openai.com/codex/guides/agents-md>
 - Codex — rules (Starlark) : <https://developers.openai.com/codex/rules>
 - Codex — subagents : <https://developers.openai.com/codex/subagents>
+- Codex — hooks : <https://developers.openai.com/codex/hooks>
+
+---
+
+## 11. État d'avancement
+
+### ✅ Fait
+
+| Brique | Détail |
+|---|---|
+| **Instructions** | `AGENTS.md` source unique ; `CLAUDE.md` importe `@AGENTS.md` |
+| **Skills (canon)** | `.ai/skills/` = copie unique (Java + Angular + outillage) |
+| **Skills (liens)** | `.claude/skills` et `.agents/skills` → `.ai/skills` (junctions) |
+| **Règles métier** | `.ai/rules/*.md` + `.claude/rules` → `.ai/rules` |
+| **Permissions (source)** | `.ai/config/permissions.yaml` — **liste canonique unique fusionnée** (format Claude) |
+| **Permissions (Claude)** | `.claude/settings.json` généré (deny/ask/allow, verbatim) |
+| **Permissions (Codex)** | `.codex/rules/execution-policy.rules` Starlark **dérivé** des entrées `Bash(...)` |
+| **Hooks (source)** | `.ai/config/hooks.yaml` — sections `claude:` + `codex:` |
+| **Hooks (scripts)** | `.sh` **et** `.ps1` rendus portables (résolution projet via git si pas de `CLAUDE_PROJECT_DIR`) |
+| **Hooks (multi-payload)** | extracteur partagé `hook_changed_files` / `Get-HookChangedFiles` : gère `tool_input.file_path` (Claude) **et** les marqueurs `apply_patch` (Codex). `json_field` robuste jq → Python → grep |
+| **Hooks (Claude)** | bloc `hooks` dans `settings.json` (`Write\|Edit\|MultiEdit` + `Bash`) |
+| **Hooks (Codex)** | `.codex/hooks.json` (`apply_patch` → lint+log, `Bash` → pre-commit), filtrage des champs par outil |
+| **Codex config** | `.codex/config.toml` (pointeur politique d'exécution) |
+| **Générateur** | `scripts/sync-config.py` (+ `.ps1`/`.cmd`) : valide YAML, génère les 4 sorties, garde anti-écrasement |
+
+### ❌ Reste à faire
+
+| Brique | Action |
+|---|---|
+| **Subagents** | Créer `.ai/config/subagents.yaml` + génération `.claude/agents/*.md` et TOML Codex |
+| **AGENTS.md / CLAUDE.md** | Assemblage par le générateur si fragments ; remplir placeholders `ARCHITECTURE.md` |
+| **Skills CLI outils externes** | Créer les skills `gh`/`mvn`/`docker`… (remplacent les MCP) |
+| **Nettoyage MCP** | Supprimer `.mcp.json` et la référence `disabledMcpjsonServers` une fois MCP abandonnés |
+| **Layout global** | `~/ai-config/` (hub utilisateur) + symlinks `~/.claude`, `~/.agents`, `~/.codex` |
+| **Test Codex réel** | Vérifier découverte `.agents/skills`, chargement `.codex/hooks.json` et `execution-policy.rules` sur la version installée |

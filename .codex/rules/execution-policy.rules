@@ -1,0 +1,60 @@
+# GENERATED FROM .ai/config — DO NOT EDIT DIRECTLY
+# Codex execution policy (Starlark).
+# See: https://developers.openai.com/codex/rules
+# Adjust the filter() signature to match your Codex version if needed.
+
+DENY = [
+    "rm -rf ",
+    "rm -fr ",
+    "rm -Rf ",
+    "del /f ",
+    "del /q ",
+    "del /s ",
+    "rd /s ",
+    "rmdir /s ",
+    "Remove-Item ",
+    "ri -r",
+    "format ",
+    "Format-Volume",
+    "Clear-Disk",
+    "diskpart",
+    "shutdown ",
+    "Stop-Computer",
+    "Restart-Computer",
+    "taskkill /f ",
+    "Stop-Process ",
+    "runas ",
+]
+ASK = [
+    "git push --force",
+    "git push -f",
+    "git push --force-with-lease",
+    "git reset --hard",
+    "git clean ",
+]
+ALLOW = [
+    "mvn ",
+    "./mvnw ",
+    "mvnw ",
+    "gradle ",
+    "./gradlew ",
+    "gradlew ",
+    "git status",
+    "git log ",
+    "git diff ",
+    "git branch ",
+    "git commit",
+    "git push",
+]
+
+def filter(action_type, command, ctx):
+    for p in DENY:
+        if p in command:
+            return {"action": "deny", "message": "Blocked: " + p}
+    for p in ASK:
+        if p in command:
+            return {"action": "ask"}
+    for p in ALLOW:
+        if p in command:
+            return {"action": "allow"}
+    return None

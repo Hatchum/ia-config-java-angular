@@ -1,0 +1,67 @@
+# Source of truth for permissions — DO NOT import directly into tools.
+# Generator: scripts/sync-config.ps1  →  scripts/sync-config.py
+# Outputs:
+#   .claude/settings.json  (permissions block, entries used verbatim)
+#   .codex/rules/execution-policy.rules  (Starlark — derived from Bash(...) entries)
+#
+# ── Single canonical list (Claude format) ───────────────────────────────────
+# Entries use Claude's native `Tool(pattern)` syntax. The generator derives the
+# Codex execution policy automatically:
+#   * Only Bash(...) entries map to Codex (it only governs commands, not Read/Edit).
+#   * `Bash(<cmd>*)` / `Bash(<cmd>:*)` → substring pattern `<cmd>` for Starlark.
+# So Read(...)/Edit(...) entries below are Claude-only by design.
+
+permissions:
+  deny:
+    # Build artefacts — never read generated output (Claude-only)
+    - "Read(./**/target/**)"
+    - "Read(./**/dist/**)"
+    - "Read(./**/build/**)"
+    # Destructive file operations
+    - "Bash(rm -rf *)"
+    - "Bash(rm -fr *)"
+    - "Bash(rm -Rf *)"
+    - "Bash(del /f *)"
+    - "Bash(del /q *)"
+    - "Bash(del /s *)"
+    - "Bash(rd /s *)"
+    - "Bash(rmdir /s *)"
+    - "Bash(Remove-Item *)"
+    - "Bash(ri -r*)"
+    # Disk / system
+    - "Bash(format *)"
+    - "Bash(Format-Volume*)"
+    - "Bash(Clear-Disk*)"
+    - "Bash(diskpart*)"
+    # Shutdown / kill
+    - "Bash(shutdown *)"
+    - "Bash(Stop-Computer*)"
+    - "Bash(Restart-Computer*)"
+    - "Bash(taskkill /f *)"
+    - "Bash(Stop-Process *)"
+    # Privilege escalation
+    - "Bash(runas *)"
+
+  ask:
+    # Destructive git operations — always confirm
+    - "Bash(git push --force*)"
+    - "Bash(git push -f*)"
+    - "Bash(git push --force-with-lease*)"
+    - "Bash(git reset --hard*)"
+    - "Bash(git clean *)"
+
+  allow:
+    # Build tools
+    - "Bash(mvn *)"
+    - "Bash(./mvnw *)"
+    - "Bash(mvnw *)"
+    - "Bash(gradle *)"
+    - "Bash(./gradlew *)"
+    - "Bash(gradlew *)"
+    # Safe git read + write operations
+    - "Bash(git status)"
+    - "Bash(git log *)"
+    - "Bash(git diff *)"
+    - "Bash(git branch *)"
+    - "Bash(git commit:*)"
+    - "Bash(git push:*)"

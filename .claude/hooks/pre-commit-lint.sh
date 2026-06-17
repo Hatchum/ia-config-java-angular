@@ -3,7 +3,9 @@
 # Contract: exit 2 BLOCKS the commit and returns the report to Claude.
 # Inert while <LINT_COMMANDS> are unconfigured (run_lint_for_file skips → never blocks).
 set -euo pipefail
-HOOK_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/hooks"
+# Portable project root: Claude sets CLAUDE_PROJECT_DIR; Codex does not, so fall back to git.
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || echo .)}"
+HOOK_DIR="$PROJECT_DIR/.claude/hooks"
 source "$HOOK_DIR/lib/json.sh"
 source "$HOOK_DIR/lib/checks.sh"
 cmd="$(json_field '.tool_input.command')"

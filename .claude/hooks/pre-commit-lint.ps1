@@ -2,7 +2,10 @@
 # Contract: exit 2 BLOCKS the commit and returns the report to Claude.
 # Inert while <LINT_COMMANDS> are unconfigured (Invoke-LintForFile skips → never blocks).
 $ErrorActionPreference = 'Stop'
-$hookDir = Join-Path $env:CLAUDE_PROJECT_DIR '.claude/hooks'
+# Portable project root: Claude sets CLAUDE_PROJECT_DIR; Codex does not, so fall back to git.
+$projectDir = if ($env:CLAUDE_PROJECT_DIR) { $env:CLAUDE_PROJECT_DIR } else { git rev-parse --show-toplevel 2>$null }
+if (-not $projectDir) { $projectDir = '.' }
+$hookDir = Join-Path $projectDir '.claude/hooks'
 . (Join-Path $hookDir 'lib/json.ps1')
 . (Join-Path $hookDir 'lib/checks.ps1')
 $cmd = Get-HookField 'tool_input.command'

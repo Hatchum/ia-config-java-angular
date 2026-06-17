@@ -1,0 +1,15 @@
+# GENERATED FROM .ai/config — DO NOT EDIT DIRECTLY
+# Generator: scripts/sync-config.ps1
+# Adjust [model] and [sandbox] sections to match your Codex version.
+#
+# Event hooks are generated separately into .codex/hooks.json
+# (same JSON schema as Claude). Execution policy lives in .codex/rules/.
+
+# [model]
+# name = "codex-mini-latest"
+
+# [sandbox]
+# network = false
+
+[execution]
+policy = ".codex/rules/execution-policy.rules"

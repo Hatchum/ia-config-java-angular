@@ -1,27 +1,52 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_generated": "GENERATED FROM .ai/config — DO NOT EDIT DIRECTLY",
   "permissions": {
     "deny": [
-      "Read(./**/target/**)", "Read(./**/dist/**)", "Read(./**/build/**)",
-      "Bash(rm -rf *)", "Bash(rm -fr *)", "Bash(rm -Rf *)",
-      "Bash(del /f *)", "Bash(del /q *)", "Bash(del /s *)",
-      "Bash(rd /s *)", "Bash(rmdir /s *)",
-      "Bash(Remove-Item *)", "Bash(ri -r*)",
-      "Bash(format *)", "Bash(Format-Volume*)", "Bash(Clear-Disk*)", "Bash(diskpart*)",
-      "Bash(shutdown *)", "Bash(Stop-Computer*)", "Bash(Restart-Computer*)",
-      "Bash(taskkill /f *)", "Bash(Stop-Process *)",
+      "Read(./**/target/**)",
+      "Read(./**/dist/**)",
+      "Read(./**/build/**)",
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)",
+      "Bash(rm -Rf *)",
+      "Bash(del /f *)",
+      "Bash(del /q *)",
+      "Bash(del /s *)",
+      "Bash(rd /s *)",
+      "Bash(rmdir /s *)",
+      "Bash(Remove-Item *)",
+      "Bash(ri -r*)",
+      "Bash(format *)",
+      "Bash(Format-Volume*)",
+      "Bash(Clear-Disk*)",
+      "Bash(diskpart*)",
+      "Bash(shutdown *)",
+      "Bash(Stop-Computer*)",
+      "Bash(Restart-Computer*)",
+      "Bash(taskkill /f *)",
+      "Bash(Stop-Process *)",
       "Bash(runas *)"
     ],
     "ask": [
-      "Bash(git push --force*)", "Bash(git push -f*)",
-      "Bash(git push --force-with-lease*)", "Bash(git reset --hard*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git reset --hard*)",
       "Bash(git clean *)"
     ],
     "allow": [
-      "Bash(mvn *)", "Bash(./mvnw *)", "Bash(mvnw *)",
-      "Bash(gradle *)", "Bash(./gradlew *)", "Bash(gradlew *)",
-      "Bash(git status)", "Bash(git log *)", "Bash(git diff *)", "Bash(git branch *)",
-      "Bash(git commit:*)", "Bash(git push:*)"
+      "Bash(mvn *)",
+      "Bash(./mvnw *)",
+      "Bash(mvnw *)",
+      "Bash(gradle *)",
+      "Bash(./gradlew *)",
+      "Bash(gradlew *)",
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git branch *)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   },
   "hooks": {
@@ -29,8 +54,16 @@
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          { "type": "command", "shell": "bash", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/lint-format.sh\"" },
-          { "type": "command", "shell": "bash", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/log-changes.sh\"" }
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/lint-format.sh\""
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/log-changes.sh\""
+          }
         ]
       }
     ],
@@ -38,7 +71,12 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "if": "Bash(git commit:*)", "shell": "bash", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-commit-lint.sh\"" }
+          {
+            "type": "command",
+            "if": "Bash(git commit:*)",
+            "shell": "bash",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-commit-lint.sh\""
+          }
         ]
       }
     ]

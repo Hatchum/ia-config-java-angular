@@ -1,12 +1,22 @@
-# PostToolUse(Write|Edit|MultiEdit): lint/format the file that was just written.
-# Contract: exit 2 feeds the linter output back to Claude as correction feedback.
+# PostToolUse file edits: lint/format each file touched by the edit.
+# Handles Claude (Write|Edit|MultiEdit → tool_input.file_path) and
+# Codex (apply_patch → file markers in tool_input.command).
+# Contract: exit 2 feeds the linter output back to the agent as correction feedback.
 $ErrorActionPreference = 'Stop'
-$hookDir = Join-Path $env:CLAUDE_PROJECT_DIR '.claude/hooks'
+# Portable project root: Claude sets CLAUDE_PROJECT_DIR; Codex does not, so fall back to git.
+$projectDir = if ($env:CLAUDE_PROJECT_DIR) { $env:CLAUDE_PROJECT_DIR } else { git rev-parse --show-toplevel 2>$null }
+if (-not $projectDir) { $projectDir = '.' }
+$hookDir = Join-Path $projectDir '.claude/hooks'
 . (Join-Path $hookDir 'lib/json.ps1')
 . (Join-Path $hookDir 'lib/checks.ps1')
-$file = Get-HookField 'tool_input.file_path'
-if (-not $file) { exit 0 }
-$out = Invoke-LintForFile $file 2>&1
-if ($LASTEXITCODE -eq 0) { exit 0 }
-[Console]::Error.WriteLine(($out | Out-String))
-exit 2
+$payload = Get-HookPayload
+$status = 0
+foreach ($file in (Get-HookChangedFiles $payload)) {
+    if (-not $file) { continue }
+    $out = Invoke-LintForFile $file 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        [Console]::Error.WriteLine(($out | Out-String))
+        $status = 2
+    }
+}
+exit $status
