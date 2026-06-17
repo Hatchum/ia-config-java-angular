@@ -9,8 +9,9 @@ Pour *ce qu'il faut remplir lors de l'installation dans un projet*, voir
 .claude/
 ├── settings.json     # base des permissions + déclarations des hooks
 ├── rules/            # loi de codage path-scopée (Java, Angular) via le frontmatter `paths`
-├── skills/           # connaissance à la demande — skills JAVA (niveau racine)
-└── hooks/            # hooks lint/format + changelog (bash + PowerShell)
+├── skills/           # connaissance à la demande — skills JAVA + méta (niveau racine)
+├── hooks/            # hooks lint/format + changelog (bash + PowerShell)
+└── agents/           # subagents (.md) — créés à la demande, voir § Subagents
 ```
 > Les **skills Angular** vivent avec le module Angular dans
 > `<angular-module>/.claude/skills/` (placeholder `frontend/.claude/skills/`),
@@ -86,6 +87,24 @@ inutilisée.
 - variante bash : Git for Windows (Git Bash) ; `jq` optionnel (repli grep sinon).
 - variante PowerShell : Windows PowerShell / PowerShell 7 (`ConvertFrom-Json` est
   intégré). Aucune installation supplémentaire.
+
+## Subagents (`.claude/agents/`)
+Un **subagent** est un assistant spécialisé qui tourne dans **sa propre fenêtre de
+contexte**, avec son **prompt système**, un **jeu d'outils restreint** et son
+**modèle** ; Claude lui délègue une tâche selon sa `description` et ne récupère
+qu'un résumé. Le kit n'en livre aucun par défaut — le dossier `.claude/agents/`
+est **créé à la demande**.
+
+Chaque subagent est un fichier Markdown (`.claude/agents/<nom>.md`) : frontmatter
+YAML (config) + corps (= prompt système). Champs de config les plus utiles :
+`name` + `description` (requis), `tools` / `disallowedTools` (moindre privilège),
+`model` (`sonnet`/`opus`/`haiku`/`fable`/ID/`inherit`, défaut `inherit`),
+`permissionMode`. Un fichier édité sur disque se charge au **redémarrage de
+session** ; via la commande `/agents`, il est actif immédiatement.
+
+Pour en créer un proprement (paramètres, choix du modèle, outils, anatomie du
+prompt), utiliser le skill **`subagent-creator`** ; la table exhaustive des champs
+est dans `.claude/skills/subagent-creator/references/frontmatter-reference.md`.
 
 ## Artefacts locaux (gitignorés)
 - `.claude/changes.local.log` — journal de changements append-only de `log-changes`.

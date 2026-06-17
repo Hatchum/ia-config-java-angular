@@ -29,6 +29,10 @@ Chargés à la demande par Claude Code ; chaque skill se décrit via son `SKILL.
   audit Maven, migration Java, logging, revue d'API REST, revue d'archi,
   changelog, git-commit, tri d'issues, smells de perf.
 - **Angular** (`frontend/.claude/skills/`) : `angular-developer`, `angular-new-app`.
+- **Méta / outillage** (`.claude/skills/`) : `find-docs` (doc à jour via Context7),
+  `prompt-creator` (génération de prompts), `skill-creator` (créer/améliorer des
+  skills), `subagent-creator` (créer des subagents Claude Code à partir des bonnes
+  pratiques officielles Anthropic + OpenAI).
 
 L'équipe ajoute ses propres skills au même endroit (Java à la racine, Angular
 dans le module).
@@ -52,6 +56,10 @@ modules, `package.json`).
 
 ## Documentation
 - Installation → [`docs/INSTALL.md`](docs/INSTALL.md)
-- Config Claude Code (permissions, hooks) → [`docs/CONFIG.md`](docs/CONFIG.md)
+- Config Claude Code (permissions, hooks, subagents) → [`docs/CONFIG.md`](docs/CONFIG.md)
 - Serveurs MCP → [`docs/MCP.md`](docs/MCP.md)
 - Build & test → wrappers `scripts/` (résumé dans `CLAUDE.md`)
+- Création de subagents → skill `subagent-creator` ; provenance dans
+  [`docs/subagent-creator-research.md`](docs/subagent-creator-research.md) (synthèse
+  doc Anthropic/OpenAI) et [`docs/subagent-creator-prompt.md`](docs/subagent-creator-prompt.md)
+  (prompt générateur). Artefacts **internes au kit** — non copiés dans la cible.

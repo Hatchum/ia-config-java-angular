@@ -10,14 +10,15 @@ en lisant le vrai code. Il ne dépend d'**aucune** config personnelle/globale.
 CLAUDE.md
 ARCHITECTURE.md
 .gitignore            (à fusionner avec le .gitignore existant du projet)
-.claude/              (settings.json, rules/, hooks/, skills/  ← skills Java)
+.claude/              (settings.json, rules/, hooks/, skills/  ← skills Java + méta : find-docs, prompt-creator, skill-creator, subagent-creator)
 scripts/              (wrappers build/test)
 .agents/              (source des skills Angular, gérée par l'installeur)
 skills-lock.json      (suit la source amont des skills Angular)
 frontend/             (module Angular placeholder : .claude/skills/ ← skills Angular,
                        en symlinks vers .agents/ — à renommer/déplacer vers le vrai module)
 .mcp.json             (serveur GitLab via la CLI glab ; prérequis : glab + glab auth login — voir docs/MCP.md)
-docs/                 (CONFIG.md + MCP.md = référence utile dans la cible ; INSTALL.md optionnel)
+docs/                 (CONFIG.md + MCP.md = référence utile dans la cible ; INSTALL.md
+                       optionnel ; subagent-creator-*.md = artefacts internes du kit, ne pas copier)
 ```
 > **Ne PAS copier `README.md`** : c'est la page d'accueil du *kit*, il écraserait
 > le `README.md` du projet cible.
