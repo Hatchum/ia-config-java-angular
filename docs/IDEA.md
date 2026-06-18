@@ -1,4 +1,4 @@
-# 🧠 Claude Code — Roadmap d'optimisation
+)# 🧠 Claude Code — Roadmap d'optimisation
 
 > **Objectif** : Mettre en place une configuration Claude Code la plus optimisée et propre possible, en suivant les meilleures pratiques officielles d'Anthropic.
 >
