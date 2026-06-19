@@ -162,6 +162,7 @@ Claude Code inclut nativement : `/code-review`, `/batch`, `/debug`, `/loop`, `/c
 > 📖 [Docs officielles Subagents](https://code.claude.com/docs/en/sub-agents)
 
 Les subagents tournent dans leur **propre fenêtre de contexte** et ne retournent qu'un résumé à la session principale. Idéal pour les tâches qui lisent beaucoup de fichiers ou nécessitent une spécialisation.
+Ne necessite pas la totalité du contexte pour fonctionner. Ne donne qu'une synthèse necessaire à l'agent orchestrateur pour continuer le workflow.
 
 ### Structure d'un subagent
 
