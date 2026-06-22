@@ -2,7 +2,7 @@
 
 Aide-mémoire **humain** pour tout ce qui se trouve sous `.claude/` dans ce kit.
 Pour *ce qu'il faut remplir lors de l'installation dans un projet*, voir
-`INSTALL.md`.
+`install.md`.
 
 ## Arborescence
 ```
@@ -19,7 +19,7 @@ Pour *ce qu'il faut remplir lors de l'installation dans un projet*, voir
 > travailles dans ce module. Ce sont des **symlinks** vers la source gérée par
 > l'installeur `.agents/skills/` (`skills-lock.json` à la racine). Sous Windows,
 > activer `git config core.symlinks true` avant le clone, ou les convertir en
-> copies réelles à l'installation — voir `INSTALL.md` §5.
+> copies réelles à l'installation — voir `install.md` §5.
 
 ## Permissions (`settings.json`)
 > **Lancer Claude depuis la racine du dépôt.** Le `settings.json` projet
@@ -105,6 +105,20 @@ session** ; via la commande `/agents`, il est actif immédiatement.
 Pour en créer un proprement (paramètres, choix du modèle, outils, anatomie du
 prompt), utiliser le skill **`subagent-creator`** ; la table exhaustive des champs
 est dans `.claude/skills/subagent-creator/references/frontmatter-reference.md`.
+
+Pour **tracer/déboguer** ce que font les agents (debug log local, télémétrie
+OpenTelemetry avec attribution par subagent), voir `docs/reference/agent-system-logs.md`.
+
+## Logs & observabilité des agents
+Deux couches distinctes, détaillées dans `docs/reference/agent-system-logs.md` :
+- **Debug log local** (par session) — `claude --debug` (ou `--debug hooks` /
+  `--debug mcp`), réglé par `CLAUDE_CODE_DEBUG_LOGS_DIR` et
+  `CLAUDE_CODE_DEBUG_LOG_LEVEL`. Pour diagnostiquer hooks, MCP, chargement des
+  skills/subagents.
+- **OpenTelemetry** — `CLAUDE_CODE_ENABLE_TELEMETRY=1` + un exporteur
+  (`OTEL_LOGS_EXPORTER` / `OTEL_METRICS_EXPORTER`). Métriques/events tagués par
+  agent (`query_source`, `agent.name`, `subagent_type`) ; traces beta imbriquant
+  les spans du subagent sous le span outil parent.
 
 ## Artefacts locaux (gitignorés)
 - `.claude/changes.local.log` — journal de changements append-only de `log-changes`.

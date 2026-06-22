@@ -11,10 +11,10 @@ spécifique à chaque outil (settings, permissions, hooks, subagents).
 
 > Ce dépôt est le **kit lui-même** (un template), pas un projet applicatif.
 > Ce `README.md` est sa page d'accueil ; il n'est **pas** copié dans les projets
-> cibles. La procédure d'installation est dans **[`docs/INSTALL.md`](docs/INSTALL.md)**.
+> cibles. La procédure d'installation est dans **[`docs/guide/install.md`](docs/guide/install.md)**.
 > L'architecture retenue et son état d'avancement sont dans
-> **[`docs/TODO.md`](docs/TODO.md)** ; la roadmap d'optimisation dans
-> **[`docs/IDEA.md`](docs/IDEA.md)**.
+> **[`docs/guide/architecture-biagent.md`](docs/guide/architecture-biagent.md)** ; la roadmap
+> d'optimisation dans **[`docs/guide/roadmap.md`](docs/guide/roadmap.md)**.
 
 ## Principe : partager l'intention, générer le résiduel
 
@@ -32,7 +32,7 @@ configuration :
 ⚠️ **« Rules » est un faux ami** : `.ai/rules/*.md` (et `.claude/rules`) = des
 **instructions de comportement** (markdown) ; `.codex/rules/*.rules` (Starlark) =
 une **politique d'exécution** (l'équivalent des permissions Claude). Voir
-`docs/TODO.md` §3.
+`docs/guide/architecture-biagent.md` §3.
 
 ## Structure du kit
 | Élément | Rôle |
@@ -108,11 +108,11 @@ L'équipe ajoute ses propres skills dans `.ai/skills/` (vus par les deux agents)
 
 > **MCP retiré.** Plus de serveur MCP à maintenir : chaque outil externe est
 > encapsulé dans un **skill** qui invoque sa **CLI** (`gh`, `mvn`, `npm`…).
-> `docs/MCP.md` reste à titre historique. **Accès direct BDD interdit** par
+> `docs/guide/mcp.md` reste à titre historique. **Accès direct BDD interdit** par
 > politique (clients `psql`/`mysql`/… en `deny` dans `permissions.yaml`).
 
 ## Installation
-Voir **[`docs/INSTALL.md`](docs/INSTALL.md)** : copier le kit dans le monorepo
+Voir **[`docs/guide/install.md`](docs/guide/install.md)** : copier le kit dans le monorepo
 cible, poser les junctions (`mklink /J`), remplir les `<PLACEHOLDER>` en lisant le
 vrai code (POM parent, modules, `package.json`), puis lancer le générateur :
 
@@ -139,13 +139,14 @@ scripts\sync-config.ps1   # YAML .ai/config → settings.json + .codex/*
 - **Décidé par l'équipe (non imposé) :** le modèle de branches / workflow git.
 
 ## Documentation
-- Architecture bi-agent + état d'avancement → [`docs/TODO.md`](docs/TODO.md)
-- Roadmap d'optimisation → [`docs/IDEA.md`](docs/IDEA.md)
-- Installation → [`docs/INSTALL.md`](docs/INSTALL.md)
-- Config (permissions, hooks, subagents) → [`docs/CONFIG.md`](docs/CONFIG.md)
-- MCP (historique — remplacé par skills+CLI) → [`docs/MCP.md`](docs/MCP.md)
+- Index de la doc → [`docs/README.md`](docs/README.md)
+- Architecture bi-agent + état d'avancement → [`docs/guide/architecture-biagent.md`](docs/guide/architecture-biagent.md)
+- Roadmap d'optimisation → [`docs/guide/roadmap.md`](docs/guide/roadmap.md)
+- Installation → [`docs/guide/install.md`](docs/guide/install.md)
+- Config (permissions, hooks, subagents) → [`docs/guide/config.md`](docs/guide/config.md)
+- MCP (historique — remplacé par skills+CLI) → [`docs/guide/mcp.md`](docs/guide/mcp.md)
 - Build & test → wrappers `scripts/` (résumé dans `AGENTS.md`)
 - Création de subagents → skill `subagent-creator` ; provenance dans
-  [`docs/subagent-creator-research.md`](docs/subagent-creator-research.md) et
-  [`docs/subagent-creator-prompt.md`](docs/subagent-creator-prompt.md). Artefacts
+  [`docs/research/subagent-creator-research.md`](docs/research/subagent-creator-research.md) et
+  [`docs/research/subagent-creator-prompt.md`](docs/research/subagent-creator-prompt.md). Artefacts
   **internes au kit** — non copiés dans la cible.

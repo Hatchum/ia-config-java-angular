@@ -16,16 +16,16 @@ scripts/              (wrappers build/test)
 skills-lock.json      (suit la source amont des skills Angular)
 frontend/             (module Angular placeholder : .claude/skills/ ← skills Angular,
                        en symlinks vers .agents/ — à renommer/déplacer vers le vrai module)
-.mcp.json             (serveur GitLab via la CLI glab ; prérequis : glab + glab auth login — voir docs/MCP.md)
-docs/                 (CONFIG.md + MCP.md = référence utile dans la cible ; INSTALL.md
-                       optionnel ; subagent-creator-*.md = artefacts internes du kit, ne pas copier)
+.mcp.json             (serveur GitLab via la CLI glab ; prérequis : glab + glab auth login — voir docs/guide/mcp.md)
+docs/                 (guide/config.md + guide/mcp.md = référence utile dans la cible ;
+                       guide/install.md optionnel ; research/subagent-creator-*.md = artefacts internes du kit, ne pas copier)
 ```
 > **Ne PAS copier `README.md`** : c'est la page d'accueil du *kit*, il écraserait
 > le `README.md` du projet cible.
 >
 > MCP est **optionnel** : `.mcp.json` déclare le serveur **GitLab** (`glab mcp serve`,
-> approuvé au premier usage). Alternatives documentées dans `docs/MCP.md` (GitLab
-> Duo hébergé, GitHub MCP). Le supprimer si l'équipe n'en veut pas.
+> approuvé au premier usage). Alternatives documentées dans `docs/guide/mcp.md`
+> (GitLab Duo hébergé, GitHub MCP). Le supprimer si l'équipe n'en veut pas.
 >
 > Sous Windows, préserver les symlinks avec `git config --global core.symlinks true`
 > avant le clone/la copie, ou les convertir en copies réelles (§5).
@@ -54,7 +54,7 @@ Le kit est volontairement **large** car le shell de l'équipe (Git Bash /
 PowerShell / cmd) n'est pas encore figé. Une fois fixé :
 - **Hooks :** garder soit la variante `.sh`, soit la `.ps1`, et mettre à jour
   chaque entrée dans `.claude/settings.json` (`"shell"` + `command`) ; supprimer
-  la variante inutilisée. Voir `docs/CONFIG.md` → « Basculer bash ↔ PowerShell ».
+  la variante inutilisée. Voir `docs/guide/config.md` → « Basculer bash ↔ PowerShell ».
 - **Permissions :** resserrer les patterns `deny` volontairement larges (ex.
   `Remove-Item *`) vers le shell choisi.
 
@@ -62,7 +62,7 @@ PowerShell / cmd) n'est pas encore figé. Une fois fixé :
 Les hooks sont livrés **inertes** (toute commande contenant encore `<` est
 ignorée, exit 0). Pour activer le lint, remplir `JAVA_LINT_CMD` / `WEB_LINT_CMD`
 dans `.claude/hooks/lib/checks.sh` (et/ou `checks.ps1`) avec les linters/
-formatters existants du projet. Détails dans `docs/CONFIG.md`.
+formatters existants du projet. Détails dans `docs/guide/config.md`.
 
 ## 5. Disposition des skills (groupés par stack)
 Les skills sont séparés par stack selon le pattern monorepo de Claude Code — un

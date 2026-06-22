@@ -109,7 +109,7 @@ Source : centre d'aide officiel Anthropic.
 
 La voie d'extension propre, c'est un **serveur MCP** (Model Context Protocol) qui
 expose un (ou des) outil(s) de recherche sémantique. Claude Code y accède comme à
-n'importe quel outil. Cf. `docs/MCP.md` pour la mécanique `.mcp.json` / `claude
+n'importe quel outil. Cf. `docs/guide/mcp.md` pour la mécanique `.mcp.json` / `claude
 mcp add` propre à ce kit.
 
 ### Architecture type
@@ -225,7 +225,7 @@ inférieure au seuil où le RAG devient rentable.
   besoin, sans coût d'infra ni risque de fuite.
 - **Si un besoin émerge** (doc métier volumineuse, plusieurs gros dépôts) :
   privilégier un **serveur MCP RAG 100 % local** (option A, embeddings locaux), et
-  le documenter dans `docs/MCP.md`. Jamais de clé d'API dans un `.mcp.json`
+  le documenter dans `docs/guide/mcp.md`. Jamais de clé d'API dans un `.mcp.json`
   versionné.
 - **Optimisations « gratuites » à préférer d'abord** : `ARCHITECTURE.md` précis,
   skills/rules path-scoped, sous-agents `Explore` pour isoler la recherche, et

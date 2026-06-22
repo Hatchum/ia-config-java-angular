@@ -12,5 +12,5 @@ applies; this only adds module-specific context.
 - **Skills:** Angular skills live in `./.claude/skills/`, discovered on demand
   while you work here.
 
-Fill the placeholders at install (see the kit's `docs/INSTALL.md`). If the real
+Fill the placeholders at install (see the kit's `docs/guide/install.md`). If the real
 Angular module uses a different directory name, this file moves with it.

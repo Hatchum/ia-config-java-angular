@@ -88,10 +88,11 @@ that needs no rendering.
 | `<angular-module>/AGENTS.md` (placeholder `frontend/`)                  | Per-module Angular instructions, loaded on demand |
 | `ARCHITECTURE.md`                                                       | Module map, layering, dependency direction, data flow |
 | `.codex/rules/` · `.claude/rules/`                                      | Coding law (Java, Angular) — path-scoped, deterministic (per agent) |
-| `docs/CONFIG.md`                                                        | Agent config: permissions, hooks, how to run them |
+| `docs/guide/config.md`                                                  | Agent config: permissions, hooks, how to run them |
 | `scripts/`                                                              | Build/test commands — the "green" exit criterion |
-| `docs/INSTALL.md`                                                       | How to drop this kit into a project + placeholders to fill |
-| `docs/MCP.md` · `.mcp.json`                                             | Optional MCP servers (GitLab default, GitHub/Duo documented) |
+| `docs/guide/install.md`                                                 | How to drop this kit into a project + placeholders to fill |
+| `docs/guide/mcp.md` · `.mcp.json`                                       | Optional MCP servers (GitLab default, GitHub/Duo documented) |
+| `docs/README.md`                                                        | Documentation index (guide / reference / research) |
 
 Open `ARCHITECTURE.md` before implementing or changing a module.
 

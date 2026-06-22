@@ -121,6 +121,31 @@ tes projets).
 - **Ne jamais committer de secret** — passer les tokens par l'environnement, pas
   en clair.
 
+## Décision du kit : CLI `ctx7` plutôt que MCP Context7
+
+> Repris de l'ex-`docs/TASK.md` §6/§6.b (« MCP » marqué *REMOVED*, remplacé par
+> « CLI + skill »).
+
+Ce dépôt récupère la documentation de librairies via la **CLI `ctx7`** (cf.
+`AGENTS.md` et `.ai/rules/context7.md`), exposée par le skill `find-docs` — et
+**non** via le MCP Context7. Avantage : pas de serveur MCP en contexte permanent.
+
+| Besoin | Solution retenue | Modèle conseillé |
+|---|---|---|
+| Doc de librairies à jour | CLI `ctx7` + skill `find-docs` (ou agent `agent-explore-docs`) | haiku |
+| Recherche web | `WebSearch`/`WebFetch` (ou Exa si activé) | haiku |
+
+Context7 / Exa restent documentés ci-dessus **en MCP** comme alternatives
+optionnelles, non livrées par défaut.
+
+**Rappels** : `/permissions` pour allowlister des domaines ; déconnecter les
+serveurs inutilisés (économie de contexte) ; les schémas d'outils MCP sont
+**différés** via `ToolSearch` (activé par défaut).
+
+**Plugins « External integrations »** (MCP préconfiguré) :
+`/plugin install github@claude-plugins-official` (aussi `gitlab`, `atlassian`,
+`linear`, `notion`, `figma`, `sentry`, `slack`…).
+
 ## Références
 - MCP Claude Code : <https://code.claude.com/docs/en/mcp>
 - Context7 (Upstash) : <https://github.com/upstash/context7>
