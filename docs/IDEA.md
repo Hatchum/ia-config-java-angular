@@ -97,6 +97,7 @@ paths:
 
 Les skills sont l'extension la plus flexible. Un skill est un fichier Markdown contenant connaissance, workflows ou instructions. Claude les charge à la demande, sans alourdir chaque session.
 
+
 ### Structure d'un skill
 
 ```markdown
@@ -112,13 +113,520 @@ disable-model-invocation: true  # Optionnel : empêche Claude de l'auto-invoquer
 ...
 ```
 
+```markdown
+---
+name: [nom-court]
+description: Utilise cette skill pour [cas d’usage précis], quand l’utilisateur demande [type de tâche] à partir de [type d’entrée].
+---
+
+# [Nom lisible de la skill]
+
+## Objectif
+[Décrire le résultat attendu en une phrase claire.]
+
+## Quand utiliser cette skill
+Utiliser cette skill si :
+- [cas 1]
+- [cas 2]
+- [cas 3]
+
+## Quand ne pas utiliser cette skill
+Ne pas utiliser cette skill si :
+- [cas hors périmètre 1]
+- [cas hors périmètre 2]
+- [cas hors périmètre 3]
+
+## Entrées nécessaires
+- [entrée 1]
+- [entrée 2]
+- [entrée 3]
+
+## Ressources disponibles
+Utiliser les ressources suivantes si elles existent :
+- `references/` pour les règles métier.
+- `templates/` pour les formats.
+- `examples/` pour les exemples.
+- `scripts/` pour les calculs ou transformations.
+- `assets/` pour les éléments visuels.
+- `tests/` pour les cas de vérification.
+
+## Procédure
+1. [Action 1]
+2. [Action 2]
+3. [Action 3]
+4. [Action 4]
+5. [Action 5]
+
+## Contraintes
+- [Contrainte 1]
+- [Contrainte 2]
+- [Contrainte 3]
+
+## Validation humaine
+Demander validation humaine si :
+- [cas sensible 1]
+- [cas sensible 2]
+- [cas sensible 3]
+
+Si validation humaine nécessaire :
+1. Ne pas exécuter l’action finale.
+2. Préparer un brouillon.
+3. Lister les risques.
+4. Lister les points à valider.
+
+## Format de sortie
+
+``markdown
+## Analyse
+- Objectif :
+- Entrées utilisées :
+- Données manquantes :
+- Risques :
+
+## Résultat
+[Sortie principale]
+
+## Points à valider
+- [Point 1]
+- [Point 2]
+...
+```
+
+skill/
+├── SKILL.md // Instruction principale
+├── memory.md // Mémoire essentielle
+├── references/ // Ce dossier contient les documents de référence, Règles métier. Utilisation :règles métier ; procédures internes ; politiques d’entreprise ;documentation ;normes ;définitions.
+│   ├── regles-prompt-engineering.md
+│   ├── criteres-reussite.md
+│   └── limites-ia-generative.md
+├── templates/ // Ce dossier contient les Formats de sortie. Utilisation :e-mails ;rapports ;devis ;tableaux ;scripts ;présentations ;comptes rendus.
+│   ├── prompt-structure.xml
+│   ├── audit-table.md
+│   └── rapport-correction.md
+├── examples/ // Ce dossier contient des exemples, Few-shots et cas types. Utilisation :stabiliser la sortie ;montrer le format ;éviter les erreurs ;guider le style.
+│   ├── prompt-vague.md
+│   ├── prompt-corrige.md
+│   ├── demande-impossible.md
+│   └── cas-validation-humaine.md
+├── scripts/ // Ce dossier contient du code, Exécution déterministe. Utilisation : calculs ; vérifications ; transformations ; exports ; génération de fichiers ; contrôles déterministes. Une IA ne doit pas inventer une formule critique.
+│   ├── extract_csv.py
+│   ├── clean_data.py
+│   ├── generate_report.py
+│   └── validate_json.py
+├── assets/ // Ce dossier contient les éléments non textuels. Utilisation : logos ; images ; chartes graphiques ; modèles visuels ; icônes.
+│   ├── logo.png
+│   ├── charte-couleur.pdf
+│   ├── icones/
+│   └── modele-slide.png
+└── tests/ Ce dossier contient les cas de test, Vérification de fiabilité. Utilisation : vérifier la skill ; repérer les erreurs ; contrôler les régressions ; améliorer les règles.
+	├── test-simple.md
+	├── test-complexe.md
+	├── test-donnees-manquantes.md
+	└── test-hors-perimetre.md
+
 ### Skills à créer
 
-#### `skill-prompt-creator`
+#### `prompt-creator`
 **But** : Meta-prompting — créer des prompts optimisés à partir des meilleures pratiques Anthropic, OpenAI, Google.
 - Recherche sur internet les techniques de prompting des grandes IA
 - Génère des prompts optimisés à partir des paramètres utilisateur
 - Sources : [Anthropic Prompt Engineering](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview)
+
+##### Procédure
+1. Lire la demande utilisateur.
+2. Identifier l’objectif réel.
+3. Identifier les données nécessaires.
+4. Vérifier si les données sont fournies.
+5. Repérer les termes vagues.
+6. Remplacer les termes vagues par des variables.
+7. Définir les contraintes.
+8. Définir le format de sortie.
+9. Ajouter les critères de réussite.
+10. Produire le prompt corrigé.
+
+```markdown
+Objectif : transformer une compétence métier en skill IA réutilisable.
+
+Contexte :
+La skill doit être utilisée dans un environnement IA capable de lire une instruction structurée.
+La skill doit réduire l’improvisation.
+La skill doit suivre une procédure claire.
+La skill doit prévoir les cas de validation humaine.
+
+Compétence à transformer :
+[COLLER LA COMPÉTENCE]
+
+Public cible :
+[COLLER LE PUBLIC]
+
+Tâche principale :
+[COLLER LA TÂCHE]
+
+Entrées disponibles :
+[LISTE DES DONNÉES DISPONIBLES]
+
+Outils disponibles :
+[LISTE DES OUTILS OU ÉCRIRE "AUCUN OUTIL"]
+
+Ressources disponibles :
+[LISTE DES RESSOURCES OU ÉCRIRE "AUCUNE RESSOURCE"]
+
+Procédure :
+1. Identifier l’objectif réel de la skill.
+2. Définir le nom court de la skill.
+3. Rédiger une description de déclenchement.
+4. Définir quand utiliser la skill.
+5. Définir quand ne pas utiliser la skill.
+6. Lister les entrées nécessaires.
+7. Construire une SOP en étapes courtes.
+8. Ajouter les contraintes.
+9. Ajouter les cas de validation humaine.
+10. Définir le format de sortie.
+11. Ajouter trois exemples d’usage.
+12. Ajouter une checklist de test.
+
+Contraintes :
+- Ne pas utiliser de rôle vague.
+- Ne pas commencer par "Tu es".
+- Utiliser des phrases courtes.
+- Une étape doit contenir une seule action.
+- Ne pas inventer de ressource.
+- Ne pas supposer qu’un outil existe.
+- Signaler les limites.
+- Prévoir les données manquantes.
+
+Format de sortie :
+Produire un fichier SKILL.md complet en Markdown.
+
+Structure attendue :
+---
+name:
+description:
+---
+
+# [Nom de la skill]
+
+## Objectif
+## Quand utiliser cette skill
+## Quand ne pas utiliser cette skill
+## Entrées nécessaires
+## Ressources disponibles
+## Procédure
+## Contraintes
+## Validation humaine
+## Format de sortie
+## Exemples
+## Checklist de test
+...
+```
+
+#### audit 
+vérifier si une skill est fiable.
+```markdown
+Objectif : auditer une skill IA et identifier les risques de mauvaise exécution.
+
+Skill à auditer :
+[COLLER LE CONTENU DE LA SKILL]
+
+Procédure :
+1. Identifier l’objectif de la skill.
+2. Vérifier si l’objectif est clair.
+3. Vérifier si la description permet un bon déclenchement.
+4. Vérifier si les cas de non-utilisation sont présents.
+5. Vérifier si les entrées nécessaires sont listées.
+6. Vérifier si la procédure est assez précise.
+7. Vérifier si les contraintes sont explicites.
+8. Vérifier si les cas de validation humaine sont présents.
+9. Vérifier si le format de sortie est exploitable.
+10. Identifier les risques d’invention.
+11. Identifier les risques d’action non autorisée.
+12. Proposer une version corrigée.
+
+Contraintes :
+- Ne pas réécrire inutilement toute la skill.
+- Corriger seulement ce qui améliore la fiabilité.
+- Signaler les points critiques en priorité.
+
+Format :
+Tableau Markdown avec colonnes :
+- Élément audité
+- Problème détecté
+- Niveau de risque
+- Correction proposée
+
+Puis :
+## Version corrigée
+[SKILL.md amélioré]
+...
+```
+
+Une skill doit être testée sur des cas normaux, complexes, incomplets, hors périmètre et sensibles.
+```markdown
+Objectif : créer une suite de tests pour vérifier la fiabilité d’une skill IA.
+
+Skill à tester :
+[COLLER LA SKILL]
+
+Procédure :
+1. Identifier la tâche principale.
+2. Créer un cas normal.
+3. Créer un cas complexe.
+4. Créer un cas avec données manquantes.
+5. Créer un cas hors périmètre.
+6. Créer un cas à risque.
+7. Définir la sortie attendue pour chaque cas.
+8. Définir les erreurs à surveiller.
+9. Créer une grille d’évaluation.
+
+Contraintes :
+- Ne pas tester seulement les cas faciles.
+- Inclure au moins un cas où la skill doit refuser ou demander validation.
+- Les sorties attendues doivent être observables.
+
+Format :
+## Suite de tests
+
+### Test 1 — Cas normal
+- Entrée :
+- Résultat attendu :
+- Erreurs à surveiller :
+
+### Test 2 — Cas complexe
+- Entrée :
+- Résultat attendu :
+- Erreurs à surveiller :
+
+### Test 3 — Données manquantes
+- Entrée :
+- Résultat attendu :
+- Erreurs à surveiller :
+
+### Test 4 — Hors périmètre
+- Entrée :
+- Résultat attendu :
+- Erreurs à surveiller :
+
+### Test 5 — Validation humaine
+- Entrée :
+- Résultat attendu :
+- Erreurs à surveiller :
+
+## Grille d’évaluation
+| Critère | Réussi | Échec | Commentaire |
+...
+```
+
+
+```markdown
+Objectif : améliorer une skill à partir d’une erreur observée.
+
+Skill actuelle :
+[COLLER LA SKILL]
+
+Erreur observée :
+[DÉCRIRE L’ERREUR]
+
+Sortie incorrecte :
+[COLLER LA SORTIE]
+
+Sortie attendue :
+[DÉCRIRE LA SORTIE ATTENDUE]
+
+Procédure :
+1. Identifier la cause probable de l’erreur.
+2. Classer la cause :
+   - objectif flou ;
+   - déclenchement mauvais ;
+   - entrée manquante ;
+   - procédure imprécise ;
+   - contrainte absente ;
+   - exemple absent ;
+   - format mal défini ;
+   - validation humaine absente.
+3. Proposer une correction minimale.
+4. Modifier la skill.
+5. Ajouter un test pour éviter la répétition de l’erreur.
+
+Contraintes :
+- Ne pas complexifier inutilement la skill.
+- Corriger la cause racine.
+- Ajouter une règle seulement si elle réduit le risque.
+
+Format :
+## Diagnostic
+## Cause
+## Correction minimale
+## SKILL.md corrigé
+## Nouveau test ajouté
+...
+```
+
+création de memory
+```markdown
+Objectif : créer une mémoire minimale à partir d’une skill IA.
+
+Skill :
+[COLLER LA SKILL]
+
+Procédure :
+1. Extraire l’objectif.
+2. Extraire les règles essentielles.
+3. Extraire la procédure.
+4. Extraire les contraintes.
+5. Extraire les cas de validation humaine.
+6. Extraire le format de sortie.
+7. Supprimer les exemples longs.
+8. Supprimer les répétitions.
+9. Produire une mémoire courte et réutilisable.
+
+Contraintes :
+- Ne pas copier toute la skill.
+- Ne pas ajouter d’information absente.
+- Utiliser des phrases courtes.
+- Garder uniquement ce qui sera utile pour une prochaine exécution.
+
+Format :
+# memory.md
+
+## Sujet
+## Objectif
+## Règles essentielles
+## Procédure
+## Contraintes
+## Validation humaine
+## Format de sortie
+## Erreurs à éviter
+...
+```
+
+audit de prompt
+```markdown
+---
+name: audit-prompt-objectif
+description: Utilise cette skill pour auditer un prompt, supprimer les rôles vagues, clarifier l’objectif, ajouter les contraintes, définir le format et améliorer la fiabilité.
+---
+
+# Audit de prompt par objectif
+
+## Objectif
+Transformer un prompt vague en prompt structuré, fiable et exploitable.
+
+## Quand utiliser cette skill
+Utiliser cette skill si l’utilisateur demande :
+- d’améliorer un prompt ;
+- de corriger un prompt ;
+- de rendre un prompt plus précis ;
+- de transformer une demande vague en instruction ;
+- de supprimer un rôle inutile ;
+- de créer un prompt professionnel.
+
+## Quand ne pas utiliser cette skill
+Ne pas utiliser cette skill si :
+- l’utilisateur demande seulement une reformulation stylistique ;
+- le prompt contient une demande illégale ;
+- les données nécessaires sont absentes et aucune hypothèse n’est autorisée ;
+- la demande exige une action sans outil disponible.
+
+## Entrées nécessaires
+- Prompt original.
+- Objectif réel si connu.
+- Public cible si connu.
+- Format attendu si connu.
+- Contraintes métier si disponibles.
+
+## Procédure
+1. Lire le prompt original.
+2. Identifier l’objectif réel.
+3. Repérer les rôles vagues.
+4. Supprimer les rôles inutiles.
+5. Repérer les termes imprécis.
+6. Remplacer les termes imprécis par des variables.
+7. Identifier les données manquantes.
+8. Identifier les outils nécessaires.
+9. Ajouter les contraintes.
+10. Ajouter le format de sortie.
+11. Ajouter les critères de réussite.
+12. Produire le prompt corrigé.
+
+## Contraintes
+- Ne pas commencer par "Tu es".
+- Ne pas utiliser de rôle si l’objectif suffit.
+- Ne pas inventer les données manquantes.
+- Ne pas rendre réalisable une tâche impossible.
+- Ne pas supprimer une contrainte métier importante.
+- Utiliser des phrases courtes.
+- Préférer les critères observables.
+
+## Validation humaine
+Demander validation humaine si :
+- le prompt engage une décision juridique ;
+- le prompt engage une décision financière ;
+- le prompt touche à la santé ;
+- le prompt implique une action irréversible ;
+- le prompt doit être utilisé en production.
+
+## Format de sortie
+
+``markdown
+## Diagnostic
+- Objectif réel :
+- Problèmes détectés :
+- Données manquantes :
+- Risques :
+
+## Prompt corrigé
+[Prompt structuré]
+
+## Critères de réussite
+- Critère 1
+- Critère 2
+- Critère 3
+...
+```
+
+```markdown
+# memory.md — Synthèse globale
+
+## Sujet
+SKILL Prompt Engineering avancé.
+
+## Définition
+Une skill IA est une compétence structurée, réutilisable et testable.
+
+## Principe central
+Structurer par objectif.  
+Ne pas structurer par rôle vague.
+
+## Structure essentielle
+Métadonnées → Objectif → Déclenchement → Entrées → SOP → Contraintes → Validation humaine → Format → Exemples → Tests.
+
+## Règles principales
+- Commencer par l’objectif.
+- Écrire des phrases courtes.
+- Définir quand utiliser la skill.
+- Définir quand ne pas l’utiliser.
+- Lister les entrées nécessaires.
+- Décomposer la procédure.
+- Ajouter les contraintes.
+- Prévoir la validation humaine.
+- Définir le format de sortie.
+- Tester les cas simples, complexes, incomplets, hors périmètre et sensibles.
+
+## Limites
+Une skill ne donne pas accès automatiquement aux données à jour.  
+Une skill ne vérifie pas seule les faits.  
+Une skill ne doit pas inventer les données manquantes.  
+Une skill ne doit pas exécuter d’action sensible sans validation.
+
+## Usage professionnel
+Une skill permet de transformer une expertise métier en actif réutilisable.  
+Elle peut être utilisée pour former, automatiser, standardiser et déléguer des tâches à une IA.
+
+## Critère de réussite
+Une skill est réussie si elle produit un résultat stable, contrôlable, exploitable et conforme aux limites définies.
+...
+```
+
 
 #### `skill-claude-memory`
 **But** : Documenter la création et l'optimisation des fichiers CLAUDE.md.
