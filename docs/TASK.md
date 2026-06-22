@@ -115,42 +115,47 @@ disable-model-invocation: true  # Optionnel : empêche Claude de l'auto-invoquer
 
 ```markdown
 ---
-name: [nom-court]
-description: Utilise cette skill pour [cas d’usage précis], quand l’utilisateur demande [type de tâche] à partir de [type d’entrée].
+name: [slug-court]
+description: Utilise cette skill pour [tâche précise] quand l’utilisateur fournit [entrée] et demande [résultat].
+version: 1.0.0
 ---
 
-# [Nom lisible de la skill]
+# [slug-court]
 
 ## Objectif
-[Décrire le résultat attendu en une phrase claire.]
+
+[Décrire le résultat attendu en une phrase.]
 
 ## Quand utiliser cette skill
+
 Utiliser cette skill si :
 - [cas 1]
 - [cas 2]
 - [cas 3]
 
 ## Quand ne pas utiliser cette skill
+
 Ne pas utiliser cette skill si :
-- [cas hors périmètre 1]
-- [cas hors périmètre 2]
-- [cas hors périmètre 3]
+- [hors périmètre 1]
+- [hors périmètre 2]
+- [données absentes]
+- [outil nécessaire non disponible]
 
 ## Entrées nécessaires
+
 - [entrée 1]
 - [entrée 2]
 - [entrée 3]
 
-## Ressources disponibles
-Utiliser les ressources suivantes si elles existent :
-- `references/` pour les règles métier.
-- `templates/` pour les formats.
-- `examples/` pour les exemples.
-- `scripts/` pour les calculs ou transformations.
-- `assets/` pour les éléments visuels.
-- `tests/` pour les cas de vérification.
+## Niveau de liberté
 
-## Procédure
+[high freedom / medium freedom / low freedom]
+
+Justification :
+[Pourquoi ce niveau est adapté.]
+
+## Workflow
+
 1. [Action 1]
 2. [Action 2]
 3. [Action 3]
@@ -158,11 +163,13 @@ Utiliser les ressources suivantes si elles existent :
 5. [Action 5]
 
 ## Contraintes
+
 - [Contrainte 1]
 - [Contrainte 2]
 - [Contrainte 3]
 
 ## Validation humaine
+
 Demander validation humaine si :
 - [cas sensible 1]
 - [cas sensible 2]
@@ -174,17 +181,28 @@ Si validation humaine nécessaire :
 3. Lister les risques.
 4. Lister les points à valider.
 
+## Ressources internes
+
+Utiliser si disponibles :
+- `references/` pour les règles.
+- `templates/` pour les formats.
+- `examples/` pour les exemples.
+- `scripts/` pour les calculs.
+- `activities/` pour les sorties.
+- `tests/` pour les vérifications.
+
 ## Format de sortie
 
 ``markdown
 ## Analyse
 - Objectif :
-- Entrées utilisées :
+- Données utilisées :
 - Données manquantes :
 - Risques :
+- Validation humaine : oui/non
 
 ## Résultat
-[Sortie principale]
+[Résultat principal]
 
 ## Points à valider
 - [Point 1]
@@ -192,6 +210,7 @@ Si validation humaine nécessaire :
 ...
 ```
 
+```
 skill/
 ├── SKILL.md // Instruction principale
 ├── memory.md // Mémoire essentielle
@@ -223,6 +242,7 @@ skill/
 	├── test-complexe.md
 	├── test-donnees-manquantes.md
 	└── test-hors-perimetre.md
+```
 
 ### Skills à créer
 
