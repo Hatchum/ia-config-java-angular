@@ -164,7 +164,10 @@ validation humaine, format de sortie. Supprimer exemples longs et répétitions.
 Ne pas copier toute la skill ni ajouter d'info absente. Phrases courtes.
 
 Format : # memory.md → ## Sujet / ## Objectif / ## Règles essentielles /
-## Procédure / ## Contraintes / ## Validation humaine / ## Format de sortie /
+## Procédure 
+## Contraintes 
+## Validation humaine 
+## Format de sortie
 ## Erreurs à éviter.
 ```
 
