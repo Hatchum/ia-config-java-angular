@@ -1,0 +1,44 @@
+{
+  "expectations": [
+    {
+      "text": "Output file is named exemple-prompt-A-1-2.txt (same base name as the source image, .txt extension)",
+      "passed": true,
+      "evidence": "File written at outputs/exemple-prompt-A-1-2.txt"
+    },
+    {
+      "text": "Output contains only verbatim transcribed text, with no 'Summary' section (none was requested)",
+      "passed": true,
+      "evidence": "File has no '---'/'Summary:' block; content is the plain transcription only"
+    },
+    {
+      "text": "Transcription accurately reflects the French text in the image without paraphrasing, translating, or summarizing it",
+      "passed": true,
+      "evidence": "Headers, bold markers, placeholders ({SUJET_OU_DOMAINE}, {OBJECTIF_UTILISATEUR}, etc.) and bullet structure all match the source image when compared directly"
+    },
+    {
+      "text": "Output is non-empty and substantial enough to match the text density visible in the image",
+      "passed": true,
+      "evidence": "26 lines covering the full visible prompt template, including the dense '## 2) Règles d'or' block"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "total_tool_calls": 14
+  },
+  "timing": {
+    "executor_duration_seconds": 143.95
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "This image's text was small/dense but still legible enough that the without_skill baseline matched it almost exactly too — this eval doesn't strongly discriminate skill value. A noisier or lower-resolution image would test the skill's value-add more clearly."
+      }
+    ],
+    "overall": "Assertions passed cleanly; not very discriminating against baseline on this particular image though."
+  }
+}

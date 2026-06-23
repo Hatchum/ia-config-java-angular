@@ -1,0 +1,48 @@
+{
+  "skill_name": "image-ocr",
+  "evals": [
+    {
+      "id": 0,
+      "name": "eval-plain-ocr",
+      "prompt": "Extrait le texte de l'image a_trier/agents/exemple-prompt-A-1-2.png et mets-le dans un fichier.",
+      "expected_output": "A .md file with the same base name as the image, with the visual title/sub-headings mapped to Markdown headings and bullets mapped to Markdown lists, containing the verbatim text only (no summary section, since none was requested).",
+      "files": ["a_trier/agents/exemple-prompt-A-1-2.png"],
+      "expectations": [
+        "Output file is named exemple-prompt-A-1-2.md (same base name as the source image, .md extension, not .txt)",
+        "Output uses Markdown headings/lists for the visible title and bullet structure rather than a flat text dump",
+        "Output contains only verbatim transcribed text, with no 'Résumé'/'Summary' section (none was requested)",
+        "Transcription accurately reflects the French text and placeholders in the image without paraphrasing, translating, or summarizing it"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "eval-summary-diagram",
+      "prompt": "Extrait le texte de a_trier/agents/architecture-agentique.png et donne-moi aussi un résumé de ce que montre ce schéma.",
+      "expected_output": "A .md file with the flowing text as Markdown, a 'Diagramme' section that correctly reconstructs the diagram's actual flow (Head Agent launches Agent 1 and Agent 2 in parallel; Agent 3 runs sequentially afterward, synthesizing the results of Agent 1 and Agent 2), and a 'Résumé' section that states this same flow correctly and concisely.",
+      "files": ["a_trier/agents/architecture-agentique.png"],
+      "expectations": [
+        "Output file is named architecture-agentique.md (.md extension, not .txt)",
+        "Output uses Markdown headings/lists for the flowing text (title, explanatory bullets, 'TYPES DE RELATIONS' block)",
+        "The diagram section correctly states that Agent 1 (recherche générale) and Agent 2 (sources officielles) are launched in parallel by the Head Agent",
+        "The diagram section correctly states that Agent 3 runs sequentially after Agent 1 and Agent 2 both finish, and that it synthesizes/combines their results — it must not present Agent 3 as a second parallel agent or duplicate the Agent 1/Agent 2 pair in a confusing second block",
+        "The Résumé section is consistent with the diagram section's flow (same parallel-then-sequential relationship), stated briefly"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "eval-multi-image",
+      "prompt": "J'ai deux captures à traiter : a_trier/agents/architecture-agentique.png et a_trier/agents/exemple-prompt-B.png, extrais le texte de chacune dans un fichier.",
+      "expected_output": "Two .md files, one per image. architecture-agentique.md must correctly reconstruct the diagram's parallel-then-sequential flow (no summary requested, but the diagram section itself must be logically correct). exemple-prompt-B.md is pure verbatim text formatted as Markdown, no diagram involved.",
+      "files": [
+        "a_trier/agents/architecture-agentique.png",
+        "a_trier/agents/exemple-prompt-B.png"
+      ],
+      "expectations": [
+        "Two separate .md files are created, one per source image, each named after its corresponding image",
+        "architecture-agentique.md's diagram section correctly shows Agent 1 and Agent 2 running in parallel, with Agent 3 running sequentially afterward to synthesize their results — not as a flat or duplicated transcription of box labels",
+        "exemple-prompt-B.md accurately transcribes the prompt template verbatim as Markdown (correct placeholder names, no hallucinated/duplicated sections)",
+        "Neither output file contains a 'Résumé'/'Summary' section (none was requested)"
+      ]
+    }
+  ]
+}

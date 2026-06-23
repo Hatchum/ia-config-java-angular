@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Output file exists with the same base name as the source image and a .txt extension",
+      "passed": true,
+      "evidence": "outputs/architecture-agentique.txt"
+    },
+    {
+      "text": "Output contains the verbatim transcribed text from the diagram (titles, bullet points, and diagram labels)",
+      "passed": true,
+      "evidence": "Title 'Architecture agentique', the 5-bullet explanation block, 'TYPES DE RELATIONS', and the right-side diagram labels (HEAD AGENT, AGENT 1/2/3, PARALLÈLE, SÉQUENTIEL) are all present and match the source"
+    },
+    {
+      "text": "Output contains a distinct 'Summary' section describing the diagram, clearly separated from the verbatim transcription",
+      "passed": true,
+      "evidence": "A '---' divider followed by 'Summary: Le schéma illustre...' appears at the end of the file, per the skill's specified output format"
+    },
+    {
+      "text": "The summary is a brief description (a few sentences) of what the diagram shows, not a restatement of the transcribed text",
+      "passed": true,
+      "evidence": "The summary is a single paragraph synthesizing the orchestration patterns (parallel/sequential/hybrid) in different words than the transcription, not a copy of it"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "total_tool_calls": 6
+  },
+  "timing": {
+    "executor_duration_seconds": 53.91
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "Clean pass on all four assertions; output follows the skill's defined format exactly."
+  }
+}

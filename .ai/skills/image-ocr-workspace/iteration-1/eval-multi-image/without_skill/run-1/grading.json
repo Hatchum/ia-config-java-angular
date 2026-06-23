@@ -1,0 +1,53 @@
+{
+  "expectations": [
+    {
+      "text": "Two separate output files are created, one per source image, each named after its corresponding image",
+      "passed": true,
+      "evidence": "outputs/architecture-agentique.txt and outputs/exemple-prompt-B.txt both present"
+    },
+    {
+      "text": "Each output file contains only the text from its own source image, with no cross-contamination between the two images' content",
+      "passed": true,
+      "evidence": "No mixing of content between the two files"
+    },
+    {
+      "text": "Neither output file contains a 'Summary' section (none was requested)",
+      "passed": true,
+      "evidence": "Neither file has a summary block"
+    },
+    {
+      "text": "Both files are non-empty and reflect distinct content matching their respective source images",
+      "passed": false,
+      "evidence": "exemple-prompt-B.txt has real transcription errors versus the with_skill run on the same image: 'Tu es {AGENT_NOM},' (source/with_skill both show '{ROLE_AGENT}'), missing '(format strict)' after 'Sortie attendue', hallucinated duplicate placeholder text under '## Outils à utiliser', and 'régradation' instead of 'dégradation'"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "execution_metrics": {
+    "total_tool_calls": 5
+  },
+  "timing": {
+    "executor_duration_seconds": 34.49
+  },
+  "claims": [
+    {
+      "claim": "exemple-prompt-B.txt is an accurate transcription",
+      "type": "quality",
+      "verified": false,
+      "evidence": "Placeholder name and a section's content were misread/hallucinated relative to the source image"
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Both files are non-empty and reflect distinct content matching their respective source images",
+        "reason": "Wording only checks distinctness, not accuracy — it happened to catch this run's errors, but a dedicated accuracy assertion (compare specific placeholder tokens) would make this more reliably discriminating across iterations"
+      }
+    ],
+    "overall": "The without_skill run spent fewer tool calls (5 vs 27) and produced visibly lower-fidelity output on the denser of the two images — consistent with the skill's emphasis on careful verbatim transcription paying off on hard-to-read text."
+  }
+}

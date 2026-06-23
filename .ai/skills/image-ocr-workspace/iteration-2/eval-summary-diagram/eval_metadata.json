@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "eval-summary-diagram",
+  "prompt": "Extrait le texte de a_trier/agents/architecture-agentique.png et donne-moi aussi un résumé de ce que montre ce schéma.",
+  "assertions": [
+    "Output file is named architecture-agentique.md (.md extension, not .txt)",
+    "Output uses Markdown headings/lists for the flowing text (title, explanatory bullets, 'TYPES DE RELATIONS' block)",
+    "The diagram section correctly states that Agent 1 (recherche générale) and Agent 2 (sources officielles) are launched in parallel by the Head Agent",
+    "The diagram section correctly states that Agent 3 runs sequentially after Agent 1 and Agent 2 both finish, and that it synthesizes/combines their results — it must not present Agent 3 as a second parallel agent or duplicate the Agent 1/Agent 2 pair in a confusing second block",
+    "The Résumé section is consistent with the diagram section's flow (same parallel-then-sequential relationship), stated briefly"
+  ]
+}

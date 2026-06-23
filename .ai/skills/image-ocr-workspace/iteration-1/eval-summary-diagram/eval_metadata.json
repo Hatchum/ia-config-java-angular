@@ -1,0 +1,11 @@
+{
+  "eval_id": 1,
+  "eval_name": "eval-summary-diagram",
+  "prompt": "Extrait le texte de a_trier/agents/architecture-agentique.png et donne-moi aussi un résumé de ce que montre ce schéma.",
+  "assertions": [
+    "Output file exists with the same base name as the source image and a .txt extension",
+    "Output contains the verbatim transcribed text from the diagram (titles, bullet points, and diagram labels)",
+    "Output contains a distinct 'Summary' section describing the diagram, clearly separated from the verbatim transcription",
+    "The summary is a brief description (a few sentences) of what the diagram shows, not a restatement of the transcribed text"
+  ]
+}

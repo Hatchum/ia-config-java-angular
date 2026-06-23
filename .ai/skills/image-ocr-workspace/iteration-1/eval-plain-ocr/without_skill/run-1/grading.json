@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Output file is named exemple-prompt-A-1-2.txt (same base name as the source image, .txt extension)",
+      "passed": true,
+      "evidence": "File written at outputs/exemple-prompt-A-1-2.txt"
+    },
+    {
+      "text": "Output contains only verbatim transcribed text, with no 'Summary' section (none was requested)",
+      "passed": true,
+      "evidence": "No summary block present"
+    },
+    {
+      "text": "Transcription accurately reflects the French text in the image without paraphrasing, translating, or summarizing it",
+      "passed": true,
+      "evidence": "Content matches the source image closely, including placeholders and bullet structure"
+    },
+    {
+      "text": "Output is non-empty and substantial enough to match the text density visible in the image",
+      "passed": true,
+      "evidence": "25 lines, full content covered"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "total_tool_calls": 13
+  },
+  "timing": {
+    "executor_duration_seconds": 156.68
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "Baseline matched with_skill quality on this image without any guidance — confirms this eval is not very discriminating."
+  }
+}

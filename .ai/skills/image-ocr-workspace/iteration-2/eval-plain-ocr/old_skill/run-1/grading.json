@@ -1,0 +1,30 @@
+{
+  "eval_id": 0,
+  "eval_name": "eval-plain-ocr",
+  "config": "old_skill",
+  "expectations": [
+    {
+      "text": "Output file is named exemple-prompt-A-1-2.md (same base name as the source image, .md extension, not .txt)",
+      "passed": false,
+      "evidence": "File written as exemple-prompt-A-1-2.txt — old skill version writes .txt by design"
+    },
+    {
+      "text": "Output uses Markdown headings/lists for the visible title and bullet structure rather than a flat text dump",
+      "passed": true,
+      "evidence": "Note: this particular source image already contains literal '#'/'##'/'-' characters as part of its own content (a prompt template that uses comment-style headers), so the verbatim transcription happens to preserve structure even without deliberate Markdown reformatting. This eval does not strongly discriminate the Markdown-reformatting behavior for this specific image."
+    },
+    {
+      "text": "Output contains only verbatim transcribed text, with no 'Résumé'/'Summary' section (none was requested)",
+      "passed": true,
+      "evidence": "No Summary section present"
+    },
+    {
+      "text": "Transcription accurately reflects the French text and placeholders in the image without paraphrasing, translating, or summarizing it",
+      "passed": true,
+      "evidence": "Placeholders and wording preserved verbatim"
+    }
+  ],
+  "summary": {"passed": 3, "failed": 1, "total": 4, "pass_rate": 0.75},
+  "execution_metrics": {"total_tokens": 33224, "duration_ms": 148611},
+  "eval_feedback": {"overall": "3/4 pass. Only fails on the .md-extension requirement, which is the exact behavior the new skill version was built to change."}
+}

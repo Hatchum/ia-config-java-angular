@@ -1,0 +1,11 @@
+{
+  "eval_id": 0,
+  "eval_name": "eval-plain-ocr",
+  "prompt": "Extrait le texte de l'image a_trier/agents/exemple-prompt-A-1-2.png et mets-le dans un fichier.",
+  "assertions": [
+    "Output file is named exemple-prompt-A-1-2.md (same base name as the source image, .md extension, not .txt)",
+    "Output uses Markdown headings/lists for the visible title and bullet structure rather than a flat text dump",
+    "Output contains only verbatim transcribed text, with no 'Résumé'/'Summary' section (none was requested)",
+    "Transcription accurately reflects the French text and placeholders in the image without paraphrasing, translating, or summarizing it"
+  ]
+}

@@ -1,0 +1,52 @@
+Architecture agentique
+
+Comment Claude Code délègue à des sous-agents pour des tâches complexes
+
+Claude Code utilise le "Task tool" pour déléguer du travail à des
+sous-agents (subagents)
+
+- Chaque sous-agent a besoin de 5 éléments
+- Tourne dans son propre contexte isolé
+- Possède ses propres outils autorisés
+- Ne peut PAS spawner d'autres sous-agents (pas l'imbrication)
+- Retourne un résultat texte unique au Head Agent
+
+TYPES DE RELATIONS
+
+- Head Agent lance N agents simultanément
+- Recherche multi-sources, exploration large
+- Jusqu'à 7 agents simultanés max
+- Séquentiel (Pipeline)
+- Agent A termine -> résultat -> Agent B démarre
+- Hybride (Fan-Out puis Pipeline)
+- Agents A+B en parallèle -> résultats -> Agent C
+
+Un seul sous-agent par tâche -> retour d'liste texte unique vers le Head Agent
+
+[Diagram boxes:]
+HEAD AGENT
+Orchestrateur
+
+PARALLÈLE
+AGENT 1
+Recherche Générale
+
+AGENT 2
+Recherche Officielles
+
+PARALLÈLE
+AGENT 3
+(... e -> ...)
+
+AGENT 1
+Recherche
+
+AGENT 2
+Recherche Officielles
+
+SÉQUENTIEL
+AGENT 3 Synthèse
+(APRÈS AGENTS 1 et 2)
+
+---
+Summary: Ce schéma illustre l'architecture agentique de Claude Code, où un "Head Agent" (orchestrateur) délègue du travail à des sous-agents via le "Task tool" pour traiter des tâches complexes. Chaque sous-agent fonctionne dans un contexte isolé, avec ses propres outils, ne peut pas créer d'autres sous-agents, et renvoie un résultat texte unique au Head Agent. Le diagramme présente trois modes de relation entre agents : parallèle (plusieurs agents lancés simultanément, jusqu'à 7, pour de la recherche multi-sources), séquentiel/pipeline (un agent termine avant que le suivant démarre, ex. Agent A puis Agent B), et hybride (fan-out puis pipeline, où des agents en parallèle alimentent un agent de synthèse final). Le côté droit du schéma visualise concrètement ces flux avec un Head Agent orchestrateur connecté à des Agents 1, 2 et 3 organisés en blocs parallèles et séquentiels.

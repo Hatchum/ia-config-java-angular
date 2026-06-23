@@ -1,0 +1,52 @@
+{
+  "expectations": [
+    {
+      "text": "Two separate output files are created, one per source image, each named after its corresponding image",
+      "passed": true,
+      "evidence": "outputs/architecture-agentique.txt and outputs/exemple-prompt-B.txt both present"
+    },
+    {
+      "text": "Each output file contains only the text from its own source image, with no cross-contamination between the two images' content",
+      "passed": true,
+      "evidence": "architecture-agentique.txt only contains the diagram's content; exemple-prompt-B.txt only contains the sub-agent prompt template content — no overlap"
+    },
+    {
+      "text": "Neither output file contains a 'Summary' section (none was requested)",
+      "passed": true,
+      "evidence": "Both files end with transcribed content, no '---'/'Summary:' block in either"
+    },
+    {
+      "text": "Both files are non-empty and reflect distinct content matching their respective source images",
+      "passed": true,
+      "evidence": "exemple-prompt-B.txt accurately reproduces '{ROLE_AGENT}', '(format strict)', and the Contraintes/Outils sections matching the source; architecture-agentique.txt matches the diagram content"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "total_tool_calls": 27
+  },
+  "timing": {
+    "executor_duration_seconds": 184.43
+  },
+  "claims": [
+    {
+      "claim": "Transcription preserves exact source formatting",
+      "type": "quality",
+      "verified": false,
+      "evidence": "The output uses '·' and '◆' bullet glyphs that don't appear to be in the source image (which uses plain '-' bullets per visual inspection) — a minor decorative deviation, not a content error"
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "No assertion catches the invented bullet glyphs ('·'/'◆' instead of the source's plain '-'). Minor, but a stricter 'preserves original formatting/bullet style' assertion would catch it."
+      }
+    ],
+    "overall": "Strong pass; only a cosmetic formatting deviation noted, no content accuracy issues."
+  }
+}

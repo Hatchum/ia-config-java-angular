@@ -1,0 +1,35 @@
+{
+  "eval_id": 1,
+  "eval_name": "eval-summary-diagram",
+  "config": "old_skill",
+  "expectations": [
+    {
+      "text": "Output file is named architecture-agentique.md (.md extension, not .txt)",
+      "passed": false,
+      "evidence": "File written as architecture-agentique.txt"
+    },
+    {
+      "text": "Output uses Markdown headings/lists for the flowing text (title, explanatory bullets, 'TYPES DE RELATIONS' block)",
+      "passed": false,
+      "evidence": "'TYPES DE RELATIONS' is left as flat caps text, no '#'/'##' heading markers added — plain verbatim dump per old skill design"
+    },
+    {
+      "text": "The diagram section correctly states that Agent 1 (recherche générale) and Agent 2 (sources officielles) are launched in parallel by the Head Agent",
+      "passed": true,
+      "evidence": "Raw box dump includes 'PARALLÈLE' label immediately above 'AGENT 1 / Recherche Générale' and 'AGENT 2 / Recherche Officielles', so the words are present, though as a positional label rather than an explained relationship"
+    },
+    {
+      "text": "The diagram section correctly states that Agent 3 runs sequentially after Agent 1 and Agent 2 both finish, and that it synthesizes/combines their results — it must not present Agent 3 as a second parallel agent or duplicate the Agent 1/Agent 2 pair in a confusing second block",
+      "passed": false,
+      "evidence": "The raw transcription shows 'PARALLÈLE / AGENT 3 / (... e -> ...)' BEFORE the second 'AGENT 1 / AGENT 2' repeat and the 'SÉQUENTIEL / AGENT 3 Synthèse' line — i.e. Agent 3 is first labeled under a 'PARALLÈLE' heading and only later, in a duplicated second block, associated with 'SÉQUENTIEL'. This is exactly the confusing duplicate/ambiguous presentation the assertion flags."
+    },
+    {
+      "text": "The Résumé section is consistent with the diagram section's flow (same parallel-then-sequential relationship), stated briefly",
+      "passed": true,
+      "evidence": "Summary text correctly describes parallel/séquentiel/hybride (fan-out puis pipeline) relations in prose, independent of the ambiguous raw diagram dump above it"
+    }
+  ],
+  "summary": {"passed": 2, "failed": 3, "total": 5, "pass_rate": 0.4},
+  "execution_metrics": {"total_tokens": 28423, "duration_ms": 44682},
+  "eval_feedback": {"overall": "2/5 pass. The flat positional transcription of diagram box labels reproduces the same 'PARALLÈLE before Agent 3' ambiguity that caused the wrong reading in iteration 1 — the Résumé prose is fine on its own, but the Diagramme section it should be grounded in is structurally confusing."}
+}

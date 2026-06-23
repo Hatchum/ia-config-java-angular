@@ -1,0 +1,30 @@
+{
+  "reviews": [
+    {
+      "run_id": "eval-multi-image-with_skill-run-1",
+      "feedback": "Le contenu de texte parait bien confrome mais il faudrait creer un fichier en markdown plutot qu'un fichier texte afin de pouvoir g\u00e9rer les titres et sous titre ainsi que les listes \u00e0 puces et num\u00e9rot\u00e9es.\nLe diagramme n'est pas correctement affich\u00e9. Peut \u00eatre que le r\u00e9sultat sera plus pr\u00e9cis en markdown ?",
+      "timestamp": "2026-06-23T13:32:43.993Z"
+    },
+    {
+      "run_id": "eval-multi-image-without_skill-run-1",
+      "feedback": "Le texte est moins pr\u00e9cis par rapport au test avec Skill, mais le diagramme est mieux repr\u00e9sent\u00e9 ici dans le fichier architecture-agentique.txt",
+      "timestamp": "2026-06-23T13:32:43.993Z"
+    },
+    {
+      "run_id": "eval-plain-ocr-with_skill-run-1",
+      "feedback": "cela parait correct, mais m\u00eame pr\u00e9cision, mieux vaudrait un fichier en markdown.",
+      "timestamp": "2026-06-23T13:32:43.993Z"
+    },
+    {
+      "run_id": "eval-summary-diagram-with_skill-run-1",
+      "feedback": "L'explication du diagramme est partiellement incorrect.\nEn effet, il y a un Head Agent (Orchestrateur) qui lance en parall\u00e8le 2 agents. L'agent 1 fait une recherche g\u00e9n\u00e9ral, l'agent 2 fait une recherche dans les sources officielles, l'agent 3 fait une synth\u00e8se \u00e0 partir des informations retourn\u00e9es par les agents 1 et 2. L'agent 3 est lanc\u00e9s s\u00e9quentiellement apr\u00e8s l'agent 1 & 2 (il attend que les agents 1 & 2 aient termin\u00e9s leurs taches avant de s'executer). ",
+      "timestamp": "2026-06-23T13:32:43.993Z"
+    },
+    {
+      "run_id": "eval-summary-diagram-without_skill-run-1",
+      "feedback": "Le r\u00e9sum\u00e9 du schema est beaucoup plus clair ici que via le skill.",
+      "timestamp": "2026-06-23T13:32:43.993Z"
+    }
+  ],
+  "status": "in_progress"
+}

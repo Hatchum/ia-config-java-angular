@@ -1,0 +1,30 @@
+{
+  "eval_id": 2,
+  "eval_name": "eval-multi-image",
+  "config": "old_skill",
+  "expectations": [
+    {
+      "text": "Two separate .md files are created, one per source image, each named after its corresponding image",
+      "passed": false,
+      "evidence": "Files written as architecture-agentique.txt and exemple-prompt-B.txt (.txt, not .md, by design of the old skill)"
+    },
+    {
+      "text": "architecture-agentique.md's diagram section correctly shows Agent 1 and Agent 2 running in parallel, with Agent 3 running sequentially afterward to synthesize their results — not as a flat or duplicated transcription of box labels",
+      "passed": false,
+      "evidence": "Raw box dump in reading order: 'PARALLÈLE / AGENT 1+AGENT 2' then 'PARALLÈLE / AGENT 3' then a repeated 'AGENT 1 / AGENT 2' pair then 'SÉQUENTIEL / AGENT 3 Synthèse' — Agent 3 is shown once under a PARALLÈLE label and again under SÉQUENTIEL, exactly the duplicated/ambiguous presentation the assertion warns against"
+    },
+    {
+      "text": "exemple-prompt-B.md accurately transcribes the prompt template verbatim as Markdown (correct placeholder names, no hallucinated/duplicated sections)",
+      "passed": true,
+      "evidence": "Placeholders and section headers transcribed correctly with no hallucination in this run (transcribed as plain text per old skill design, not Markdown, but content is accurate)"
+    },
+    {
+      "text": "Neither output file contains a 'Résumé'/'Summary' section (none was requested)",
+      "passed": true,
+      "evidence": "Neither file has a Summary section"
+    }
+  ],
+  "summary": {"passed": 2, "failed": 2, "total": 4, "pass_rate": 0.5},
+  "execution_metrics": {"total_tokens": 37195, "duration_ms": 196027},
+  "eval_feedback": {"overall": "2/4 pass. File extension and diagram-logic clarity fail by the same pattern seen in eval-summary-diagram's old_skill run; the second image's transcription is accurate this run."}
+}

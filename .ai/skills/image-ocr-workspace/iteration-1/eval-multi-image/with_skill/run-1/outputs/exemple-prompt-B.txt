@@ -1,0 +1,31 @@
+> (Type d'info : modèle choisi, taille attendue, stratégie de transfert)
+- Rappel : Plus le prompt est long, plus risque de **dégradation** ("lost in the middle").
+- Recommandation pratique : limiter l'injection à ~{INJECTION_CIBLE_TOKENS} tokens (ex. 30-50K).
+- Options si trop volumineux :
+  1) Passer `model: "opus"` (contexte plus large)
+  2) Map-Reduce (découper entre plusieurs agents)
+  3) Fichier pivot (lecture progressive)
+  4) Résumé intermédiaire (agent condenseur)
+
+# B) TEMPLATE DE PROMPT — SUB-AGENT (GÉNÉRIQUE)
+# ================================================================
+
+## Identité
+Tu es {ROLE_AGENT}.
+- (Type d'info : 1-2 phrases, rôle unique, spécialisé)
+
+## Objectif
+Accomplir la tâche suivante : {OBJECTIF_AGENT}
+- (Type d'info : objectif précis, délimité, mesurable)
+
+## Outils à utiliser
+
+## Contraintes
+- {CONTRAINTE_1} (ex. "Ne fais pas de synthèse finale")
+- {CONTRAINTE_2} (ex. "Cite systématiquement l'URL")
+- {CONTRAINTE_3} (ex. "Respecte la whitelist de domaines")
+- (Type d'info : interdits explicites, règles d'éthique, scope)
+
+## Sortie attendue (format strict)
+{FORMAT_SORTIE_AGENT}
+- (Type d'info : sections, bullet points, tableaux, placeholders)

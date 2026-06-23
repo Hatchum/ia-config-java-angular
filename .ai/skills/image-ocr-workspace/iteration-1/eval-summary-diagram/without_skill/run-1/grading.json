@@ -1,0 +1,48 @@
+{
+  "expectations": [
+    {
+      "text": "Output file exists with the same base name as the source image and a .txt extension",
+      "passed": false,
+      "evidence": "File was written as architecture-agentique.md, not .txt"
+    },
+    {
+      "text": "Output contains the verbatim transcribed text from the diagram (titles, bullet points, and diagram labels)",
+      "passed": false,
+      "evidence": "Content was reorganized under invented Markdown headers rather than transcribed verbatim, and contains transcription errors: 'a besoin de l'étapes' (source says '5 éléments'), 'multi-tools, executoration large' (garbled, source says 'multi-sources, exploration large'), 'Pas (de) PRO spawner' (garbled, source says 'Ne PEUT spawner'). The file itself includes a '> Note OCR' admitting some labels are 'partiellement lisibles' / best-guess."
+    },
+    {
+      "text": "Output contains a distinct 'Summary' section describing the diagram, clearly separated from the verbatim transcription",
+      "passed": true,
+      "evidence": "A '## Résumé du schéma' header clearly separates the summary from the OCR section above it"
+    },
+    {
+      "text": "The summary is a brief description (a few sentences) of what the diagram shows, not a restatement of the transcribed text",
+      "passed": false,
+      "evidence": "The summary runs to ~35 lines across 3 numbered points plus an intro and closing paragraph — it re-enumerates the same parallel/sequential/hybrid details already given in the OCR section rather than staying brief"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25
+  },
+  "execution_metrics": {
+    "total_tool_calls": 3
+  },
+  "timing": {
+    "executor_duration_seconds": 46.92
+  },
+  "claims": [
+    {
+      "claim": "The OCR section is a faithful transcription of the image",
+      "type": "quality",
+      "verified": false,
+      "evidence": "Several phrases are garbled or wrong relative to the source image, and the file itself flags uncertainty in a few spots"
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "This eval discriminates well — the with_skill run produced a faithful verbatim transcription plus a tight summary, while the unguided baseline restructured/paraphrased the text (introducing errors) and produced an overlong summary."
+  }
+}

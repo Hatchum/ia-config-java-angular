@@ -1,0 +1,309 @@
+{
+  "metadata": {
+    "skill_name": "image-ocr",
+    "skill_path": "../image-ocr",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-06-23T13:30:29Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 196.0,
+        "tokens": 37195,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Two separate .md files are created, one per source image, each named after its corresponding image",
+          "passed": false,
+          "evidence": "Files written as architecture-agentique.txt and exemple-prompt-B.txt (.txt, not .md, by design of the old skill)"
+        },
+        {
+          "text": "architecture-agentique.md's diagram section correctly shows Agent 1 and Agent 2 running in parallel, with Agent 3 running sequentially afterward to synthesize their results — not as a flat or duplicated transcription of box labels",
+          "passed": false,
+          "evidence": "Raw box dump in reading order: 'PARALLÈLE / AGENT 1+AGENT 2' then 'PARALLÈLE / AGENT 3' then a repeated 'AGENT 1 / AGENT 2' pair then 'SÉQUENTIEL / AGENT 3 Synthèse' — Agent 3 is shown once under a PARALLÈLE label and again under SÉQUENTIEL, exactly the duplicated/ambiguous presentation the assertion warns against"
+        },
+        {
+          "text": "exemple-prompt-B.md accurately transcribes the prompt template verbatim as Markdown (correct placeholder names, no hallucinated/duplicated sections)",
+          "passed": true,
+          "evidence": "Placeholders and section headers transcribed correctly with no hallucination in this run (transcribed as plain text per old skill design, not Markdown, but content is accurate)"
+        },
+        {
+          "text": "Neither output file contains a 'Résumé'/'Summary' section (none was requested)",
+          "passed": true,
+          "evidence": "Neither file has a Summary section"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 148.6,
+        "tokens": 33224,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output file is named exemple-prompt-A-1-2.md (same base name as the source image, .md extension, not .txt)",
+          "passed": false,
+          "evidence": "File written as exemple-prompt-A-1-2.txt — old skill version writes .txt by design"
+        },
+        {
+          "text": "Output uses Markdown headings/lists for the visible title and bullet structure rather than a flat text dump",
+          "passed": true,
+          "evidence": "Note: this particular source image already contains literal '#'/'##'/'-' characters as part of its own content (a prompt template that uses comment-style headers), so the verbatim transcription happens to preserve structure even without deliberate Markdown reformatting. This eval does not strongly discriminate the Markdown-reformatting behavior for this specific image."
+        },
+        {
+          "text": "Output contains only verbatim transcribed text, with no 'Résumé'/'Summary' section (none was requested)",
+          "passed": true,
+          "evidence": "No Summary section present"
+        },
+        {
+          "text": "Transcription accurately reflects the French text and placeholders in the image without paraphrasing, translating, or summarizing it",
+          "passed": true,
+          "evidence": "Placeholders and wording preserved verbatim"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 44.7,
+        "tokens": 28423,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output file is named architecture-agentique.md (.md extension, not .txt)",
+          "passed": false,
+          "evidence": "File written as architecture-agentique.txt"
+        },
+        {
+          "text": "Output uses Markdown headings/lists for the flowing text (title, explanatory bullets, 'TYPES DE RELATIONS' block)",
+          "passed": false,
+          "evidence": "'TYPES DE RELATIONS' is left as flat caps text, no '#'/'##' heading markers added — plain verbatim dump per old skill design"
+        },
+        {
+          "text": "The diagram section correctly states that Agent 1 (recherche générale) and Agent 2 (sources officielles) are launched in parallel by the Head Agent",
+          "passed": true,
+          "evidence": "Raw box dump includes 'PARALLÈLE' label immediately above 'AGENT 1 / Recherche Générale' and 'AGENT 2 / Recherche Officielles', so the words are present, though as a positional label rather than an explained relationship"
+        },
+        {
+          "text": "The diagram section correctly states that Agent 3 runs sequentially after Agent 1 and Agent 2 both finish, and that it synthesizes/combines their results — it must not present Agent 3 as a second parallel agent or duplicate the Agent 1/Agent 2 pair in a confusing second block",
+          "passed": false,
+          "evidence": "The raw transcription shows 'PARALLÈLE / AGENT 3 / (... e -> ...)' BEFORE the second 'AGENT 1 / AGENT 2' repeat and the 'SÉQUENTIEL / AGENT 3 Synthèse' line — i.e. Agent 3 is first labeled under a 'PARALLÈLE' heading and only later, in a duplicated second block, associated with 'SÉQUENTIEL'. This is exactly the confusing duplicate/ambiguous presentation the assertion flags."
+        },
+        {
+          "text": "The Résumé section is consistent with the diagram section's flow (same parallel-then-sequential relationship), stated briefly",
+          "passed": true,
+          "evidence": "Summary text correctly describes parallel/séquentiel/hybride (fan-out puis pipeline) relations in prose, independent of the ambiguous raw diagram dump above it"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 343.0,
+        "tokens": 48783,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Two separate .md files are created, one per source image, each named after its corresponding image",
+          "passed": true,
+          "evidence": "architecture-agentique.md and exemple-prompt-B.md both written"
+        },
+        {
+          "text": "architecture-agentique.md's diagram section correctly shows Agent 1 and Agent 2 running in parallel, with Agent 3 running sequentially afterward to synthesize their results — not as a flat or duplicated transcription of box labels",
+          "passed": true,
+          "evidence": "Diagramme section states 'PARALLÈLE — démarre deux agents en même temps, sans dépendance entre eux' for Agent 1/2, then 'point de jonction qui reçoit les résultats combinés... une fois que les deux ont terminé', plus an explicit closing 'Lecture du flux' paragraph restating the parallel-then-sequential relationship in plain language"
+        },
+        {
+          "text": "exemple-prompt-B.md accurately transcribes the prompt template verbatim as Markdown (correct placeholder names, no hallucinated/duplicated sections)",
+          "passed": true,
+          "evidence": "Placeholders ({ROLE_AGENT}, {OBJECTIF_AGENT}, {CONTRAINTE_1-3}, {FORMAT_SORTIE_AGENT}) and section headers match the source exactly, no duplication"
+        },
+        {
+          "text": "Neither output file contains a 'Résumé'/'Summary' section (none was requested)",
+          "passed": true,
+          "evidence": "Neither file has a Résumé/Summary section"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 79.5,
+        "tokens": 30899,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output file is named exemple-prompt-A-1-2.md (same base name as the source image, .md extension, not .txt)",
+          "passed": true,
+          "evidence": "File written as exemple-prompt-A-1-2.md"
+        },
+        {
+          "text": "Output uses Markdown headings/lists for the visible title and bullet structure rather than a flat text dump",
+          "passed": true,
+          "evidence": "Output uses '#'/'##' headings, '-' nested bullets, and '**bold**' emphasis matching the image's visual hierarchy (e.g. '## Contexte & mission', '## 2) Règles d'or (non négociables)')"
+        },
+        {
+          "text": "Output contains only verbatim transcribed text, with no 'Résumé'/'Summary' section (none was requested)",
+          "passed": true,
+          "evidence": "No Résumé/Summary section present"
+        },
+        {
+          "text": "Transcription accurately reflects the French text and placeholders in the image without paraphrasing, translating, or summarizing it",
+          "passed": true,
+          "evidence": "Placeholders ({SUJET_OU_DOMAINE}, {OBJECTIF_UTILISATEUR}, etc.) and wording preserved verbatim"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 210.4,
+        "tokens": 38865,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output file is named architecture-agentique.md (.md extension, not .txt)",
+          "passed": true,
+          "evidence": "File written as architecture-agentique.md"
+        },
+        {
+          "text": "Output uses Markdown headings/lists for the flowing text (title, explanatory bullets, 'TYPES DE RELATIONS' block)",
+          "passed": true,
+          "evidence": "'# Architecture agentique', '## Types de relations', '## Diagramme', '## Résumé' headings with nested bullet lists"
+        },
+        {
+          "text": "The diagram section correctly states that Agent 1 (recherche générale) and Agent 2 (sources officielles) are launched in parallel by the Head Agent",
+          "passed": true,
+          "evidence": "'**PARALLÈLE** — lance deux agents en même temps, sans dépendance entre eux : **AGENT 1** — Recherche Générale / **AGENT 2** — Sources Officielles'"
+        },
+        {
+          "text": "The diagram section correctly states that Agent 3 runs sequentially after Agent 1 and Agent 2 both finish, and that it synthesizes/combines their results — it must not present Agent 3 as a second parallel agent or duplicate the Agent 1/Agent 2 pair in a confusing second block",
+          "passed": true,
+          "evidence": "'ne démarre qu'une fois Agent 1 et Agent 2 terminés ; combine leurs résultats' and inset reiterates 'SÉQUENTIEL → AGENT 3 Synthèse (lancé APRÈS 1 et 2)' — the second visual block (inset/legend) is explicitly labeled as a smaller-scale repetition of the same pattern, not presented as a separate ambiguous parallel agent"
+        },
+        {
+          "text": "The Résumé section is consistent with the diagram section's flow (same parallel-then-sequential relationship), stated briefly",
+          "passed": true,
+          "evidence": "Résumé restates: 'lance d'abord deux agents en parallèle... Une fois que ces deux agents ont terminé, un troisième agent — Agent 3 — démarre... point de jonction/synthèse, donc séquentiel'"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "old_skill": {
+      "pass_rate": {
+        "mean": 0.55,
+        "stddev": 0.1803,
+        "min": 0.4,
+        "max": 0.75
+      },
+      "time_seconds": {
+        "mean": 129.7667,
+        "stddev": 77.3883,
+        "min": 44.7,
+        "max": 196.0
+      },
+      "tokens": {
+        "mean": 32947.3333,
+        "stddev": 4392.5396,
+        "min": 28423,
+        "max": 37195
+      }
+    },
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 210.9667,
+        "stddev": 131.7509,
+        "min": 79.5,
+        "max": 343.0
+      },
+      "tokens": {
+        "mean": 39515.6667,
+        "stddev": 8959.7371,
+        "min": 30899,
+        "max": 48783
+      }
+    },
+    "delta": {
+      "pass_rate": "-0.45",
+      "time_seconds": "-81.2",
+      "tokens": "-6568"
+    }
+  },
+  "notes": [
+    "Markdown output format change (eval-plain-ocr) is now confirmed working: with_skill writes .md with real heading/list structure on all 3 evals, 100% pass rate vs 55% for old_skill.",
+    "eval-summary-diagram (id 1) is where iteration-1 user feedback bit hardest, and where the fix shows clearest: with_skill now states the diagram correctly in both the Diagramme and Resume sections (Agent 1 + Agent 2 launched in parallel by the Head Agent, Agent 3 runs after both finish and synthesizes their results). old_skill scored only 40% here because its raw box-label dump repeats AGENT 3 once under a PARALLELE label and again under SEQUENTIEL, the exact ambiguity the user originally flagged.",
+    "old_skill is not a strictly worse model, it is the same instructions as iteration-1, run again, so its scores here are a fair like-for-like baseline rather than a strawman: its Resume prose is still reasonably correct on its own (same finding as iteration-1), but its Diagramme section is structurally confusing because it transcribes box positions in reading order instead of tracing dependency arrows.",
+    "with_skill spent more time and tokens on the diagram-heavy evals (210s/38.9k tokens and 343s/48.8k tokens) than old_skill (44.7s/28.4k and 196s/37.2k on the same evals) because the new workflow requires explicitly tracing every arrow before writing the Diagramme section. This is the direct cost of the correctness fix and is worth surfacing, not hiding: old_skill is cheaper but wrong about the one thing that mattered most to the user.",
+    "eval-multi-image (id 2) exemple-prompt-B output was accurate in both configurations this run, unlike iteration-1 where the baseline made transcription errors on the same image. This is most likely run-to-run variance in the unguided/old-skill baseline rather than a property of the skill change, so it should not be read as evidence either way about plain-text transcription accuracy."
+  ]
+}

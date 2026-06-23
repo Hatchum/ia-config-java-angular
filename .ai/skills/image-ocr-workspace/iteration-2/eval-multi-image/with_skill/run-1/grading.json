@@ -1,0 +1,30 @@
+{
+  "eval_id": 2,
+  "eval_name": "eval-multi-image",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "Two separate .md files are created, one per source image, each named after its corresponding image",
+      "passed": true,
+      "evidence": "architecture-agentique.md and exemple-prompt-B.md both written"
+    },
+    {
+      "text": "architecture-agentique.md's diagram section correctly shows Agent 1 and Agent 2 running in parallel, with Agent 3 running sequentially afterward to synthesize their results — not as a flat or duplicated transcription of box labels",
+      "passed": true,
+      "evidence": "Diagramme section states 'PARALLÈLE — démarre deux agents en même temps, sans dépendance entre eux' for Agent 1/2, then 'point de jonction qui reçoit les résultats combinés... une fois que les deux ont terminé', plus an explicit closing 'Lecture du flux' paragraph restating the parallel-then-sequential relationship in plain language"
+    },
+    {
+      "text": "exemple-prompt-B.md accurately transcribes the prompt template verbatim as Markdown (correct placeholder names, no hallucinated/duplicated sections)",
+      "passed": true,
+      "evidence": "Placeholders ({ROLE_AGENT}, {OBJECTIF_AGENT}, {CONTRAINTE_1-3}, {FORMAT_SORTIE_AGENT}) and section headers match the source exactly, no duplication"
+    },
+    {
+      "text": "Neither output file contains a 'Résumé'/'Summary' section (none was requested)",
+      "passed": true,
+      "evidence": "Neither file has a Résumé/Summary section"
+    }
+  ],
+  "summary": {"passed": 4, "failed": 0, "total": 4, "pass_rate": 1.0},
+  "execution_metrics": {"total_tokens": 48783, "duration_ms": 343003},
+  "eval_feedback": {"overall": "4/4 pass. Diagram logic is correct and explicit, including an extra plain-language recap of the flow."}
+}

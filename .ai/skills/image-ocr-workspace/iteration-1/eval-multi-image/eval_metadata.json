@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "eval-multi-image",
+  "prompt": "J'ai deux captures à traiter : a_trier/agents/architecture-agentique.png et a_trier/agents/exemple-prompt-B.png, extrais le texte de chacune dans un fichier.",
+  "assertions": [
+    "Two separate output files are created, one per source image, each named after its corresponding image",
+    "Each output file contains only the text from its own source image, with no cross-contamination between the two images' content",
+    "Neither output file contains a 'Summary' section (none was requested)",
+    "Both files are non-empty and reflect distinct content matching their respective source images"
+  ]
+}

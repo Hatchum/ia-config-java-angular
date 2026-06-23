@@ -1,0 +1,49 @@
+Architecture agentique
+Comment Claude Code délègue à des sous-agents pour des tâches complexes
+
+Claude Code utilise le "Task tool" pour déléguer du travail à des
+sous-agents (subagents).
+· Chaque sous-agent a besoin de 5 éléments :
+  ◆ Tourne dans son propre contexte isolé
+  ◆ Possède ses propres outils autorisés
+  ◆ Ne peut PAS spawner d'autres sous-agents (pa l'imbrication)
+  ◆ Retourne un résultat texte unique au Head Agent
+
+TYPES DE RELATIONS
+· Head Agent lance N agents simultanément
+  ◆ Recherche multi-sources, exploration large
+  ◆ Jusqu'à 7 agents simultanés max
+· Séquentiel (Pipeline)
+  ◆ Agent A termine → résultat → Agent B démarre
+· Hybride (Fan-Out puis Pipeline)
+  ◆ Agents A+B en parallèle → résultats → Agent C
+
+Un seul sub-agent par tâche + retour d'un texte unique vers le Head Agent
+
+HEAD AGENT
+(Orchestrateur)
+
+PARALLÈLE
+
+AGENT 1
+Recherche
+Générale
+
+AGENT 2
+Sources
+Officielles
+
+PARALLÈLE
+
+AGENT 3
+
+AGENT 1
+Recherche
+
+AGENT 2
+Sources Officielles
+
+SÉQUENTIEL
+
+AGENT 3 Synthèse
+(lancé APRÈS 1 et 2)

@@ -1,0 +1,299 @@
+{
+  "metadata": {
+    "skill_name": "image-ocr",
+    "skill_path": "../image-ocr",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-06-23T12:37:15Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 184.4,
+        "tokens": 38902,
+        "tool_calls": 27,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Two separate output files are created, one per source image, each named after its corresponding image",
+          "passed": true,
+          "evidence": "outputs/architecture-agentique.txt and outputs/exemple-prompt-B.txt both present"
+        },
+        {
+          "text": "Each output file contains only the text from its own source image, with no cross-contamination between the two images' content",
+          "passed": true,
+          "evidence": "architecture-agentique.txt only contains the diagram's content; exemple-prompt-B.txt only contains the sub-agent prompt template content \u2014 no overlap"
+        },
+        {
+          "text": "Neither output file contains a 'Summary' section (none was requested)",
+          "passed": true,
+          "evidence": "Both files end with transcribed content, no '---'/'Summary:' block in either"
+        },
+        {
+          "text": "Both files are non-empty and reflect distinct content matching their respective source images",
+          "passed": true,
+          "evidence": "exemple-prompt-B.txt accurately reproduces '{ROLE_AGENT}', '(format strict)', and the Contraintes/Outils sections matching the source; architecture-agentique.txt matches the diagram content"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 144.0,
+        "tokens": 32833,
+        "tool_calls": 14,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output file is named exemple-prompt-A-1-2.txt (same base name as the source image, .txt extension)",
+          "passed": true,
+          "evidence": "File written at outputs/exemple-prompt-A-1-2.txt"
+        },
+        {
+          "text": "Output contains only verbatim transcribed text, with no 'Summary' section (none was requested)",
+          "passed": true,
+          "evidence": "File has no '---'/'Summary:' block; content is the plain transcription only"
+        },
+        {
+          "text": "Transcription accurately reflects the French text in the image without paraphrasing, translating, or summarizing it",
+          "passed": true,
+          "evidence": "Headers, bold markers, placeholders ({SUJET_OU_DOMAINE}, {OBJECTIF_UTILISATEUR}, etc.) and bullet structure all match the source image when compared directly"
+        },
+        {
+          "text": "Output is non-empty and substantial enough to match the text density visible in the image",
+          "passed": true,
+          "evidence": "26 lines covering the full visible prompt template, including the dense '## 2) R\u00e8gles d'or' block"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 53.9,
+        "tokens": 29367,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output file exists with the same base name as the source image and a .txt extension",
+          "passed": true,
+          "evidence": "outputs/architecture-agentique.txt"
+        },
+        {
+          "text": "Output contains the verbatim transcribed text from the diagram (titles, bullet points, and diagram labels)",
+          "passed": true,
+          "evidence": "Title 'Architecture agentique', the 5-bullet explanation block, 'TYPES DE RELATIONS', and the right-side diagram labels (HEAD AGENT, AGENT 1/2/3, PARALL\u00c8LE, S\u00c9QUENTIEL) are all present and match the source"
+        },
+        {
+          "text": "Output contains a distinct 'Summary' section describing the diagram, clearly separated from the verbatim transcription",
+          "passed": true,
+          "evidence": "A '---' divider followed by 'Summary: Le sch\u00e9ma illustre...' appears at the end of the file, per the skill's specified output format"
+        },
+        {
+          "text": "The summary is a brief description (a few sentences) of what the diagram shows, not a restatement of the transcribed text",
+          "passed": true,
+          "evidence": "The summary is a single paragraph synthesizing the orchestration patterns (parallel/sequential/hybrid) in different words than the transcription, not a copy of it"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 34.5,
+        "tokens": 27033,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Two separate output files are created, one per source image, each named after its corresponding image",
+          "passed": true,
+          "evidence": "outputs/architecture-agentique.txt and outputs/exemple-prompt-B.txt both present"
+        },
+        {
+          "text": "Each output file contains only the text from its own source image, with no cross-contamination between the two images' content",
+          "passed": true,
+          "evidence": "No mixing of content between the two files"
+        },
+        {
+          "text": "Neither output file contains a 'Summary' section (none was requested)",
+          "passed": true,
+          "evidence": "Neither file has a summary block"
+        },
+        {
+          "text": "Both files are non-empty and reflect distinct content matching their respective source images",
+          "passed": false,
+          "evidence": "exemple-prompt-B.txt has real transcription errors versus the with_skill run on the same image: 'Tu es {AGENT_NOM},' (source/with_skill both show '{ROLE_AGENT}'), missing '(format strict)' after 'Sortie attendue', hallucinated duplicate placeholder text under '## Outils \u00e0 utiliser', and 'r\u00e9gradation' instead of 'd\u00e9gradation'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 156.7,
+        "tokens": 29038,
+        "tool_calls": 13,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output file is named exemple-prompt-A-1-2.txt (same base name as the source image, .txt extension)",
+          "passed": true,
+          "evidence": "File written at outputs/exemple-prompt-A-1-2.txt"
+        },
+        {
+          "text": "Output contains only verbatim transcribed text, with no 'Summary' section (none was requested)",
+          "passed": true,
+          "evidence": "No summary block present"
+        },
+        {
+          "text": "Transcription accurately reflects the French text in the image without paraphrasing, translating, or summarizing it",
+          "passed": true,
+          "evidence": "Content matches the source image closely, including placeholders and bullet structure"
+        },
+        {
+          "text": "Output is non-empty and substantial enough to match the text density visible in the image",
+          "passed": true,
+          "evidence": "25 lines, full content covered"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 46.9,
+        "tokens": 26963,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output file exists with the same base name as the source image and a .txt extension",
+          "passed": false,
+          "evidence": "File was written as architecture-agentique.md, not .txt"
+        },
+        {
+          "text": "Output contains the verbatim transcribed text from the diagram (titles, bullet points, and diagram labels)",
+          "passed": false,
+          "evidence": "Content was reorganized under invented Markdown headers rather than transcribed verbatim, and contains transcription errors: 'a besoin de l'\u00e9tapes' (source says '5 \u00e9l\u00e9ments'), 'multi-tools, executoration large' (garbled, source says 'multi-sources, exploration large'), 'Pas (de) PRO spawner' (garbled, source says 'Ne PEUT spawner'). The file itself includes a '> Note OCR' admitting some labels are 'partiellement lisibles' / best-guess."
+        },
+        {
+          "text": "Output contains a distinct 'Summary' section describing the diagram, clearly separated from the verbatim transcription",
+          "passed": true,
+          "evidence": "A '## R\u00e9sum\u00e9 du sch\u00e9ma' header clearly separates the summary from the OCR section above it"
+        },
+        {
+          "text": "The summary is a brief description (a few sentences) of what the diagram shows, not a restatement of the transcribed text",
+          "passed": false,
+          "evidence": "The summary runs to ~35 lines across 3 numbered points plus an intro and closing paragraph \u2014 it re-enumerates the same parallel/sequential/hybrid details already given in the OCR section rather than staying brief"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 127.4333,
+        "stddev": 66.8087,
+        "min": 53.9,
+        "max": 184.4
+      },
+      "tokens": {
+        "mean": 33700.6667,
+        "stddev": 4826.3537,
+        "min": 29367,
+        "max": 38902
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.6667,
+        "stddev": 0.3819,
+        "min": 0.25,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 79.3667,
+        "stddev": 67.259,
+        "min": 34.5,
+        "max": 156.7
+      },
+      "tokens": {
+        "mean": 27678.0,
+        "stddev": 1178.3145,
+        "min": 26963,
+        "max": 29038
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.33",
+      "time_seconds": "+48.1",
+      "tokens": "+6023"
+    }
+  },
+  "notes": [
+    "eval-plain-ocr (id 0) doesn't discriminate: both configurations scored 100% on this image, because its text was legible enough for the unguided baseline to transcribe it just as well.",
+    "eval-summary-diagram (id 1) is where the skill clearly pays off: with_skill scored 100% with a faithful verbatim transcription plus a tight summary, while without_skill scored 25% — it paraphrased into invented Markdown headers, introduced transcription errors on small text, used a .md extension instead of .txt, and produced an overlong summary that re-enumerated the transcription instead of staying brief.",
+    "eval-multi-image (id 2) without_skill mostly held up structurally (separate files, no cross-contamination) but failed on accuracy in the denser of the two images: wrong placeholder name, a hallucinated duplicate section, and a typo ('régradation' vs 'dégradation') that the with_skill run avoided.",
+    "with_skill runs used noticeably more tool calls and time on the two denser images (14 and 27 tool calls vs 13 and 5) — both with_skill executors cropped/upscaled the image into overlapping regions before transcribing, trading time for accuracy. This is a real cost worth surfacing to the user, not just a benchmark artifact.",
+    "without_skill's only structural miss was file extension/format (.md with invented headers instead of plain .txt) — suggests the skill's explicit, fixed output format (plain text, optional '---'/'Summary:' block) is doing real work, not just the transcription instructions."
+  ]
+}

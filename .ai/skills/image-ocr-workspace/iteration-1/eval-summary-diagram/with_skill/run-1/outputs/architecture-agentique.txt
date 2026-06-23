@@ -1,0 +1,51 @@
+Architecture agentique
+
+Comment Claude Code délègue à des sous-agents pour des tâches complexes
+
+Claude Code utilise le "Task tool" pour déléguer du travail à des
+sous-agents (subagents)
+• Chaque sous-agent a besoin de 5 éléments
+• Tourne dans son propre contexte isolé
+• Possède ses propres outils autorisés
+• Ne PEUT spawner d'autres sous-agents (pas l'imbrication)
+• Retourne un résultat texte unique au Head Agent
+
+TYPES DE RELATIONS
+
+• Head Agent lance N agents simultanément
+• Parallèle: multi-sources, comparaisons
+A → [B, C, D] en parallèle → résultat
+Jusqu'à 7 agents simultanés max
+
+• Séquentiel (Pipeline)
+A termine → résultat → ensuite B démarre
+B termine → résultat → ensuite C démarre
+
+• Hybride (Fan-out puis Pipeline)
+N agents en parallèle → résultats → Agent C
+
+Un seul sous-agent par tâche → retour d'1 texte unique vers le Head Agent
+
+[Diagram, right side:]
+
+HEAD AGENT
+Orchestrateur
+
+PARALLÈLE
+AGENT 1                AGENT 2
+Recherche               Sources Officielles
+Générale
+
+PARALLÈLE
+                AGENT 3
+                (n+1...)
+
+AGENT 1                 AGENT 2
+Recherche               Sources Officielles
+
+SÉQUENTIEL
+                AGENT 3 Synthèse
+                (APRÈS AGENT 1 ET 2)
+
+---
+Summary: Le schéma illustre l'architecture agentique de Claude Code, où un "Head Agent" (orchestrateur central) délègue des tâches à des sous-agents via le "Task tool". Le texte de gauche explique les règles de fonctionnement (contexte isolé par agent, outils propres, pas de sous-agents imbriqués, un seul résultat texte renvoyé au Head Agent) et présente trois types de relations possibles entre agents : parallèle (jusqu'à 7 agents simultanés, ex. recherche générale + sources officielles), séquentiel/pipeline (un agent termine avant que le suivant démarre), et hybride (fan-out parallèle suivi d'un agent de synthèse). Le diagramme de droite schématise ces relations : le Head Agent lance les Agents 1 et 2 en parallèle (recherche générale et sources officielles), peut ajouter un Agent 3 en parallèle, puis enchaîne en séquentiel avec un Agent 3 de synthèse qui s'exécute après les Agents 1 et 2.

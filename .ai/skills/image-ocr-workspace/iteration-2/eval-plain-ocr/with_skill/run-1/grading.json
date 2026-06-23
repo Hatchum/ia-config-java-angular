@@ -1,0 +1,30 @@
+{
+  "eval_id": 0,
+  "eval_name": "eval-plain-ocr",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "Output file is named exemple-prompt-A-1-2.md (same base name as the source image, .md extension, not .txt)",
+      "passed": true,
+      "evidence": "File written as exemple-prompt-A-1-2.md"
+    },
+    {
+      "text": "Output uses Markdown headings/lists for the visible title and bullet structure rather than a flat text dump",
+      "passed": true,
+      "evidence": "Output uses '#'/'##' headings, '-' nested bullets, and '**bold**' emphasis matching the image's visual hierarchy (e.g. '## Contexte & mission', '## 2) Règles d'or (non négociables)')"
+    },
+    {
+      "text": "Output contains only verbatim transcribed text, with no 'Résumé'/'Summary' section (none was requested)",
+      "passed": true,
+      "evidence": "No Résumé/Summary section present"
+    },
+    {
+      "text": "Transcription accurately reflects the French text and placeholders in the image without paraphrasing, translating, or summarizing it",
+      "passed": true,
+      "evidence": "Placeholders ({SUJET_OU_DOMAINE}, {OBJECTIF_UTILISATEUR}, etc.) and wording preserved verbatim"
+    }
+  ],
+  "summary": {"passed": 4, "failed": 0, "total": 4, "pass_rate": 1.0},
+  "execution_metrics": {"total_tokens": 30899, "duration_ms": 79496},
+  "eval_feedback": {"overall": "All 4 assertions pass. Clean Markdown transcription, correct filename/extension."}
+}

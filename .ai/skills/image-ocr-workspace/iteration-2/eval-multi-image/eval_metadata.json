@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "eval-multi-image",
+  "prompt": "J'ai deux captures à traiter : a_trier/agents/architecture-agentique.png et a_trier/agents/exemple-prompt-B.png, extrais le texte de chacune dans un fichier.",
+  "assertions": [
+    "Two separate .md files are created, one per source image, each named after its corresponding image",
+    "architecture-agentique.md's diagram section correctly shows Agent 1 and Agent 2 running in parallel, with Agent 3 running sequentially afterward to synthesize their results — not as a flat or duplicated transcription of box labels",
+    "exemple-prompt-B.md accurately transcribes the prompt template verbatim as Markdown (correct placeholder names, no hallucinated/duplicated sections)",
+    "Neither output file contains a 'Résumé'/'Summary' section (none was requested)"
+  ]
+}

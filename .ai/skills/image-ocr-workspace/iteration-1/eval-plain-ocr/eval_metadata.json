@@ -1,0 +1,11 @@
+{
+  "eval_id": 0,
+  "eval_name": "eval-plain-ocr",
+  "prompt": "Extrait le texte de l'image a_trier/agents/exemple-prompt-A-1-2.png et mets-le dans un fichier.",
+  "assertions": [
+    "Output file is named exemple-prompt-A-1-2.txt (same base name as the source image, .txt extension)",
+    "Output contains only verbatim transcribed text, with no 'Summary' section (none was requested)",
+    "Transcription accurately reflects the French text in the image without paraphrasing, translating, or summarizing it",
+    "Output is non-empty and substantial enough to match the text density visible in the image"
+  ]
+}
