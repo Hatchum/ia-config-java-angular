@@ -86,16 +86,22 @@ _CLAUDE_HOOK_FIELDS = ("if", "shell")
 _CODEX_HOOK_FIELDS  = ("timeout", "statusMessage")
 
 def _build_hooks(events: dict, optional_fields: tuple) -> dict:
-    """Build the shared {event: [{matcher, hooks:[...]}]} structure.
+    """Build the shared {event: [{matcher?, hooks:[...]}]} structure.
 
     `optional_fields` lists which extra per-command keys to carry through for the
     target tool; the common keys (type, command) are always included.
+    `matcher` itself is optional: events like Stop don't support matchers, so
+    an entry with no `matcher` key in the source YAML omits it from the output
+    too, rather than emitting a matcher: null.
     """
     result = {}
     for event, entries in events.items():
         result[event] = []
         for entry in entries:
-            block = {"matcher": entry["matcher"], "hooks": []}
+            block = {}
+            if "matcher" in entry:
+                block["matcher"] = entry["matcher"]
+            block["hooks"] = []
             for cmd in entry.get("commands", []):
                 hook = {"type": cmd.get("type", "command")}
                 for field in optional_fields:

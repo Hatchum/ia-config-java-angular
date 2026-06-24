@@ -41,3 +41,14 @@ function Get-HookChangedFiles {
     }
     return $files
 }
+
+function Add-JsonLine {
+    # Append one JSON object as a line to $Path, creating the parent dir if
+    # needed. PowerShell equivalent of jsonl_append() in json.sh — used for the
+    # same JSON Lines audit pattern (code.claude.com/docs/en/hooks).
+    # Usage: Add-JsonLine -Path $log -Fields ([ordered]@{ k1 = $v1; k2 = $v2 })
+    param([string]$Path, [System.Collections.Specialized.OrderedDictionary]$Fields)
+    $dir = Split-Path -Path $Path -Parent
+    if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    ($Fields | ConvertTo-Json -Compress) | Out-File -FilePath $Path -Append -Encoding utf8
+}

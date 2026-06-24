@@ -32,6 +32,38 @@ claude:
           shell: bash
           command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-commit-lint.sh"'
 
+  # ── Human-traceable agent-activity logging (Claude-only: SubagentStart/
+  # SubagentStop/Stop are not part of Codex's hook model, only PreToolUse/
+  # PostToolUse are shared above) ──────────────────────────────────────────
+  # Two JSONL files under .claude/logs/ (gitignored, local):
+  #   agent-runs.jsonl     — subagent_start/subagent_stop (who ran, when)
+  #   agent-activity.jsonl — tool_edit (PostToolUse above) + worktree_snapshot
+  #                          (below), i.e. what changed, by whom
+  # matcher ".*" matches every agent type — confirmed regex support for the
+  # matcher field (code.claude.com/docs/en/hooks). Stop has no matcher concept
+  # (event "doesn't support matchers and always fires on every occurrence"),
+  # so its entry below omits the matcher key entirely.
+  SubagentStart:
+    - matcher: ".*"
+      commands:
+        - type: command
+          shell: bash
+          command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/log-agent-lifecycle.sh"'
+  SubagentStop:
+    - matcher: ".*"
+      commands:
+        - type: command
+          shell: bash
+          command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/log-agent-lifecycle.sh"'
+        - type: command
+          shell: bash
+          command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/log-worktree-snapshot.sh"'
+  Stop:
+    - commands:
+        - type: command
+          shell: bash
+          command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/log-worktree-snapshot.sh"'
+
 # ── Codex wiring ─────────────────────────────────────────────────────────────
 # matcher is a regex against tool_name. Codex's file-edit tool is `apply_patch`
 # (not Write/Edit/MultiEdit). Codex has no CLAUDE_PROJECT_DIR → resolve via git.

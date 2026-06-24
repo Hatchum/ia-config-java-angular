@@ -252,27 +252,161 @@ l'instant), le rôle en prose, les règles/skills gouvernants, une section
 `sop.<role>.<archetype>` puis `sop-overrides.yaml`, et la convention de token
 de statut en fin de section.
 
-## Stratégie mémoire
+## Stratégie mémoire — corrigé le 2026-06-24 (v2, modèle à 3 niveaux)
 
-- **Mémoire d'instructions** (déjà en place, inchangée) : hiérarchie
-  `AGENTS.md` → `CLAUDE.md` + `.ai/rules/*.md` (scoping `paths:`), rechargée à
-  chaque tour de la session principale **et** au démarrage de chaque
-  subagent personnalisé (confirmé 2026-06-24 : seuls les agents intégrés
-  *Explore*/*Plan* sautent `CLAUDE.md` et le git status — tous les subagents
-  de ce kit, étant personnalisés, les chargent normalement).
-- **Mémoire persistante par subagent** (`memory: project` →
-  `.claude/agent-memory/<name>/MEMORY.md`, 200 premières lignes / 25 Ko
-  injectées, confirmé 2026-06-24) : réservée aux rôles qui **accumulent un
-  jugement dans le temps**.
-  - `agent-review-adversarial` et `agent-security-reviewer` (`memory:
-    project`, versionné git) : bénéfice réel — mémoriser les faux positifs
-    déjà tranchés par l'équipe évite de re-signaler le même écart accepté à
-    chaque revue.
-  - `agent-explore-*`, `agent-code-java`, `agent-code-angular` : **pas de
-    memory**. Chaque feature est une exécution indépendante ; l'état qui
-    compte (ce qui a été codé, pourquoi) doit vivre dans le code et les
-    commits, pas dans un fichier de mémoire qui peut devenir périmé et
-    biaiser une implémentation future.
+> **Correction de fraîcheur (interne à ce document)** : la version
+> précédente de cette section ne couvrait que 2 des 3 niveaux de mémoire
+> réellement documentés par Claude Code — le niveau « auto memory » de la
+> session principale (ci-dessous) avait été omis. Corrigé après vérification
+> directe de <https://code.claude.com/docs/en/memory> (fetché 2026-06-24).
+> Aucun changement de comportement n'en découle (ce niveau est natif, actif
+> par défaut, rien à configurer) — seulement une lacune de documentation.
+
+Claude Code distingue **3 mécanismes de mémoire**, pas 2 :
+
+| Niveau | Qui écrit | Emplacement réel | Portée | Chargé au démarrage |
+|---|---|---|---|---|
+| **1. `CLAUDE.md`/`AGENTS.md`** (instructions) | l'humain | `AGENTS.md`→`CLAUDE.md` (racine, importé), `.ai/rules/*.md` (`paths:`) | règles, pas des constats appris | en entier, à chaque session **et** au démarrage de chaque subagent personnalisé (confirmé : seuls les agents intégrés *Explore*/*Plan* sautent cette étape) |
+| **2. Auto memory (session principale)** | Claude lui-même, automatiquement | `~/.claude/projects/<projet>/memory/MEMORY.md` (+ fichiers thématiques) — **machine-local, jamais commité**, un dossier par dépôt git (partagé entre worktrees) | apprentissages de session (commandes de build, conventions découvertes, préférences) — pas un fichier de ce dépôt | 200 premières lignes / 25 Ko de `MEMORY.md` ; activé par défaut depuis Claude Code v2.1.59 (`autoMemoryEnabled`) |
+| **3. Mémoire persistante par subagent** (`memory: project\|user\|local`) | le subagent, sur instruction explicite de son system prompt | `.claude/agent-memory/<name>/MEMORY.md` (scope `project`, **versionné git**) ou équivalents `user`/`local` | jugement accumulé propre à un rôle nommé | 200 premières lignes / 25 Ko du `MEMORY.md` de cet agent |
+
+Le niveau 2 (auto memory) est **natif et déjà actif** dans toute session de ce
+kit sans configuration de notre part — il n'apparaît dans aucun fichier de
+`.ai/config/` parce qu'il n'y a rien à y déclarer. Il joue, pour
+l'orchestrateur (la session principale qui exécute `workflow-dev`/
+`workflow-debug`), le rôle de mémoire de contexte stable que `subagents.yaml`
+ne couvre pas : retenir d'une session à l'autre que `scripts\test.cmd` est la
+bonne commande, que les clients DB en direct sont interdits, etc. — à
+distinguer de `agent-memory/`, qui est git-partagé et scope à un **rôle**, pas
+à la session.
+
+Seul le niveau 3 concerne les rôles de ce kit, et seulement deux d'entre eux —
+décision inchangée, justifiée ci-dessous :
+
+- `agent-review-adversarial` et `agent-security-reviewer` (`memory:
+  project`, versionné git) : bénéfice réel — mémoriser les faux positifs déjà
+  tranchés par l'équipe évite de re-signaler le même écart accepté à chaque
+  revue. **Activé concrètement par ce run** : `.claude/agent-memory/
+  agent-review-adversarial/MEMORY.md` et `.claude/agent-memory/
+  agent-security-reviewer/MEMORY.md` existent maintenant sur disque (avant
+  cette passe, le dossier `.claude/agent-memory/` n'existait pas du tout —
+  confirmé par inspection directe — donc la mémoire était *configurée* dans
+  le frontmatter mais jamais *amorcée*). Les deux fichiers sont volontairement
+  vides au-delà de leur en-tête : c'est le travail réel des agents, pas ce
+  run, qui doit les peupler.
+- `agent-explore-*`, `agent-code-java`, `agent-code-angular` : **toujours pas
+  de memory**, décision maintenue. Chaque feature est une exécution
+  indépendante ; l'état qui compte (ce qui a été codé, pourquoi) doit vivre
+  dans le code et les commits, pas dans un fichier de mémoire qui peut
+  devenir périmé et biaiser une implémentation future. Si ce choix doit être
+  reconsidéré (ex. `agent-explore-code` qui apprendrait la structure du repo
+  d'une session à l'autre), c'est un changement délibéré à discuter, pas une
+  extension par défaut.
+
+## Identifiants des subagents — comment l'orchestrateur suit leur travail
+
+Confirmé 2026-06-24 (`docs/en/sub-agents` + `docs/en/hooks`, fetchés) : chaque
+subagent a **deux identifiants de nature différente**, tous deux déjà actifs
+nativement — rien à activer dans ce kit pour qu'ils existent.
+
+| Identifiant | Nature | Source | Usage par l'orchestrateur |
+|---|---|---|---|
+| `name` (ex. `agent-review-adversarial`) | **Statique** — un par fichier `.claude/agents/*.md`, c'est le champ frontmatter `name:` | défini une fois dans le fichier agent | Référencé dans `roles:` de `subagents.yaml` ; c'est ce que reçoivent les hooks comme `agent_type` ; c'est le nom utilisable en `@agent-<name>` ou `Agent(<name>)` |
+| `agent_id` | **Dynamique** — un par *invocation* (deux dispatches du même `agent-code-java` dans le même run obtiennent deux `agent_id` différents) | assigné par Claude Code au moment du dispatch | Renvoyé à l'orchestrateur à la fin du tour de l'agent ; permet de **reprendre** un subagent précis via `SendMessage` (`to: <agent_id>`) plutôt que d'en relancer un nouveau |
+
+Trois conséquences concrètes pour le suivi du travail :
+
+1. **Transcript complet par invocation** : chaque exécution est persistée en
+   entier (tool calls, raisonnement, résultat) dans
+   `~/.claude/projects/<projet>/<sessionId>/subagents/agent-<agentId>.jsonl`
+   — indépendamment de la compaction de la session principale, conservé
+   `cleanupPeriodDays` jours (30 par défaut). C'est le journal le plus
+   complet pour vérifier ce qu'un agent a réellement fait.
+2. **Hooks `PreToolUse`/`PostToolUse`** reçoivent `agent_type` et `agent_id`
+   dans leur payload JSON dès que l'appel vient d'un subagent (absent pour un
+   appel de la session principale) — confirmé verbatim sur `docs/en/hooks`.
+3. **Gap comblé par ce run** : `.claude/hooks/log-changes.sh`/`.ps1` (le hook
+   générique de log de fichiers modifiés, voir `hooks.yaml`) **n'exploitait
+   pas** ces deux champs jusqu'à cette passe. Voir la section suivante pour le
+   détail complet — ce premier correctif a depuis été absorbé dans un système
+   de journalisation à 2 fichiers (options A+B+D ci-dessous).
+
+Ces mécanismes restent de l'**observabilité a posteriori** (transcript, logs)
+— ils ne remplacent pas la vérification de fond : le hook `Stop` proposé
+(tâche P4) reste la seule garde qui empêcherait une session de se terminer sur
+un build/tests non réellement verts, plutôt que de se fier au seul `STATUS:`
+auto-déclaré.
+
+## Journalisation humainement traçable (options A + B + D)
+
+Demande explicite : « ajouter un ou plusieurs fichiers de log qui permettent à
+un humain de tracer le travail de chaque agent », avec obligation de fonder
+les choix sur la documentation officielle plutôt que sur un design *ad hoc*.
+Option C (auto-déclaration par le LLM lui-même dans un fichier) a été écartée
+dès la proposition : la documentation des hooks justifie leur existence
+précisément par leur caractère **déterministe**, par opposition à une action
+que le modèle « choisit » de faire — un journal qui dépend de la bonne volonté
+du LLM à s'auto-rapporter n'a pas cette garantie.
+
+Deux fichiers JSON Lines, tous deux locaux et gitignorés
+(`.claude/logs/` — voir `.gitignore`), tous deux écrits par des hooks
+déterministes (jamais par le LLM) :
+
+| Fichier | Écrit par | Événement(s) | Contenu d'une ligne |
+|---|---|---|---|
+| `.claude/logs/agent-runs.jsonl` | `log-agent-lifecycle.sh`/`.ps1` (**option B**) | `SubagentStart`, `SubagentStop` | `{timestamp, event: subagent_start\|subagent_stop, session_id, agent_type, agent_id}` — qui a tourné, quand, combien de temps (delta entre les deux lignes du même `agent_id`) |
+| `.claude/logs/agent-activity.jsonl` | `log-changes.sh`/`.ps1` (**option A**, étend l'ancien `changes.local.log` désormais figé/legacy) + `log-worktree-snapshot.sh`/`.ps1` (**option D**) | `PostToolUse` (Write\|Edit\|MultiEdit / `apply_patch`) et `Stop`/`SubagentStop` | `{timestamp, event: tool_edit\|worktree_snapshot, session_id, agent_type, agent_id, ...}` — `tool_edit` porte `tool`+`file` (issu du payload de l'outil) ; `worktree_snapshot` porte `status`+`file` (issu d'un scan `git status --porcelain`) |
+
+Pourquoi deux fichiers au lieu d'un seul fourre-tout : l'un répond à « qui a
+tourné et quand » (B, sans notion de fichier), l'autre à « qu'est-ce qui a
+changé et qui l'a fait » (A+D, sans notion de durée de vie d'un agent) — deux
+questions différentes qu'un humain pose rarement en même temps.
+
+Pourquoi A et D écrivent dans le **même** fichier plutôt que deux fichiers
+séparés : ce sont deux vues complémentaires de la même question (« quels
+fichiers ont changé »), distinguées par le champ `event`. A capture chaque
+édition au moment précis de l'appel d'outil (`Write`/`Edit`/`MultiEdit`/
+`apply_patch`) ; D comble le trou que A ne peut pas voir — une modification
+de fichier faite via une commande `Bash` brute (`sed`, un script, `mv`...) ne
+passe jamais par ces outils, donc jamais par le hook `PostToolUse` de A. La
+doc officielle l'indique explicitement : *« If your hook must see every file
+change, such as for compliance scanning or audit logging, add a Stop hook
+that scans the working tree once per turn »* — c'est exactement le rôle de D,
+greffé sur `Stop` (session principale) et `SubagentStop` (un subagent qui a pu
+modifier des fichiers via Bash sans que A l'ait vu). D ne tente pas de
+dédupliquer contre A : c'est un instantané `git status --porcelain` complet à
+chaque fin de tour, pas un journal différentiel — un humain corrèle les deux
+`event` par `timestamp`/`agent_id` si besoin.
+
+Détails d'implémentation notables :
+- Les deux scripts de logging partagent une fonction utilitaire commune
+  `jsonl_append` (`.claude/hooks/lib/json.sh`) / `Add-JsonLine`
+  (`.claude/hooks/lib/json.ps1`), sur le même modèle de repli que `json_field`
+  existant : `jq` (préféré, échappement JSON correct) → interpréteur Python
+  détecté (`_hook_python`, qui sait éviter le stub Microsoft Store de
+  `python3` sous Windows) → sortie naïve non échappée en dernier recours.
+  Validé sur ce poste, qui n'a pas `jq` installé : le repli Python produit du
+  JSON valide.
+- Le `matcher: ".*"` sur `SubagentStart`/`SubagentStop` matche tout type
+  d'agent (regex supportée par le champ `matcher`, confirmé sur
+  `docs/en/hooks`) — volontairement non restreint à une liste de noms pour
+  rester valide si de nouveaux subagents sont ajoutés sans toucher
+  `hooks.yaml`.
+- `Stop` ne supporte pas de `matcher` (« doesn't support matchers and always
+  fires on every occurrence », confirmé sur `docs/en/hooks`) : l'entrée
+  correspondante dans `hooks.yaml` omet simplement la clé `matcher`, et
+  `scripts/sync-config.py::_build_hooks` a été ajusté pour ne plus exiger
+  cette clé inconditionnellement (elle levait une `KeyError` auparavant).
+- Ces quatre nouveaux hooks (`SubagentStart`, `SubagentStop` ×2 commandes,
+  `Stop`) sont **spécifiques à Claude Code** — ajoutés uniquement sous la
+  section `claude:` de `hooks.yaml`, pas sous `codex:` (Codex ne documente pas
+  d'équivalent à ces événements à ce jour).
+- Régénération vérifiée : `python scripts/sync-config.py` régénère
+  `.claude/settings.json` sans erreur, avec les 3 nouveaux blocs `hooks.*`
+  visibles et la clé `matcher` correctement absente du bloc `Stop`. Les 3
+  scripts `.sh` passent `bash -n` ; les 3 scripts ont été testés avec des
+  payloads JSON synthétiques (succès, lignes JSON valides produites, repli
+  Python confirmé en l'absence de `jq` sur ce poste).
 
 ## Génération — extension proposée de `scripts/sync-config.py`
 
@@ -317,6 +451,15 @@ comment l'étendre, sans s'y engager :
 | `.claude/agents/agent-security-reviewer.md` | Subagent reviewer sensible/escalade, opus, `memory: project` |
 | `.ai/skills/workflow-dev/SKILL.md` + 5 step files | Skill fichiers-étapes (pattern `docs/reference/workflows.md`) qui lit `workflows.yaml` → `workflow-dev` et dispatche explore (parallèle) → implement-backend/frontend (parallèle entre eux) → review, avec le contrôle `STATUS:`/`AskUserQuestion` à chaque étape |
 | `.ai/skills/workflow-debug/SKILL.md` + 5 step files | Skill fichiers-étapes mappant le pattern DEBUG officiel (Analyze→Log→Find→**Propose**→Fix→**Verify**, validation utilisateur aux étapes 1/3/5) sur les 3 rôles de `workflows.yaml` → `workflow-debug` ; le checkpoint « Propose » (choix humain entre 2-3 solutions) et la confirmation finale « Verify » sont portés par l'orchestrateur lui-même, pas par un subagent |
+| `.claude/agent-memory/agent-review-adversarial/MEMORY.md` | Amorce la mémoire persistante (niveau 3) de cet agent — index vide, le dossier `.claude/agent-memory/` n'existait pas avant cette passe |
+| `.claude/agent-memory/agent-security-reviewer/MEMORY.md` | Idem pour cet agent |
+| `.claude/hooks/log-changes.sh` + `.ps1` (réécrits) | Option A — `PostToolUse` (Write\|Edit\|MultiEdit / `apply_patch`) écrit désormais du JSON Lines (`event: tool_edit`) dans `.claude/logs/agent-activity.jsonl` au lieu du TSV `changes.local.log` (désormais figé/legacy, toujours gitignoré) |
+| `.claude/hooks/log-agent-lifecycle.sh` + `.ps1` (nouveaux) | Option B — hooks `SubagentStart`/`SubagentStop` écrivant `.claude/logs/agent-runs.jsonl` (`event: subagent_start\|subagent_stop`) |
+| `.claude/hooks/log-worktree-snapshot.sh` + `.ps1` (nouveaux) | Option D — hooks `Stop`/`SubagentStop` qui scannent `git status --porcelain` et ajoutent `event: worktree_snapshot` dans `.claude/logs/agent-activity.jsonl`, pour couvrir les modifications faites via `Bash` brut |
+| `.claude/hooks/lib/json.sh` + `.ps1` (étendus) | Ajout de `jsonl_append`/`Add-JsonLine`, helper JSON Lines partagé par les 3 scripts ci-dessus (repli jq → Python → naïf, même logique que `json_field`) |
+| `.ai/config/hooks.yaml` (étendu) | Wiring des 4 nouvelles entrées `claude:` (`SubagentStart`, `SubagentStop` ×2 commandes, `Stop` sans `matcher`) |
+| `scripts/sync-config.py` (corrigé) | `_build_hooks` n'exige plus `entry["matcher"]` inconditionnellement — le `Stop` (qui ne supporte pas de `matcher`) provoquait sinon une `KeyError` |
+| `.gitignore` (étendu) | `.claude/logs/` ajouté aux artefacts locaux jamais committés |
 | `docs/research/agentique.md` | Ce document (remplace intégralement la v1 — voir avertissement en tête) |
 
 Tous les fichiers YAML ont été validés par un parse `yaml.safe_load` réussi ;
@@ -371,8 +514,11 @@ ailleurs, séquencée ici ; « (nouveau) » = surfacée par cette analyse.
 
 - Run agents in parallel — <https://code.claude.com/docs/en/agents> (fetché 2026-06-24)
 - Orchestrate dynamic workflows — <https://code.claude.com/docs/en/workflows> (fetché 2026-06-24 ; citation exacte de la limite « No mid-run user input » et des plafonds 16 agents concurrents / 1000 agents par run)
-- Create custom subagents — <https://code.claude.com/docs/en/sub-agents> (fetché 2026-06-24 ; confirme la liste exacte des outils indisponibles aux subagents et le tableau complet des champs de frontmatter)
+- Create custom subagents — <https://code.claude.com/docs/en/sub-agents> (fetché 2026-06-24 ; confirme la liste exacte des outils indisponibles aux subagents, le tableau complet des champs de frontmatter, et les identifiants `name`/`agent_id`)
 - Configure permissions — <https://code.claude.com/docs/en/permissions> (fetché 2026-06-24 ; modes de permission, interaction hooks/permissions)
+- How Claude remembers your project (CLAUDE.md vs auto memory) — <https://code.claude.com/docs/en/memory> (fetché 2026-06-24 ; corrige une lacune de la v2 initiale de ce document — le niveau « auto memory » de la session principale avait été omis)
+- Hooks (champs `agent_type`/`agent_id` du payload `PreToolUse`/`PostToolUse` ; schémas `SubagentStart`/`SubagentStop`/`Stop` ; exemples « Audit configuration changes » et « Log every Bash command » en JSON Lines ; absence de `matcher` sur `Stop` ; recommandation explicite du hook `Stop` scannant `git status --porcelain` pour la couverture compliance/audit) — <https://code.claude.com/docs/en/hooks> (fetché 2026-06-24)
+- Hooks guide (exemples concrets corroborant les mêmes patterns JSON Lines) — <https://code.claude.com/docs/en/hooks-guide> (fetché 2026-06-24, seconde confirmation)
 - Fiches internes déjà vérifiées, reprises sans nouvelle lecture : `docs/reference/subagents.md`, `docs/reference/skills.md`, `docs/reference/workflows.md` (vérifiées 2026-06-22)
 - Contrat `<handoff>` et anatomies d'archétype : `.ai/skills/prompt-creator/references/dev-orchestration.md`
 - État d'avancement et backlog : `docs/guide/roadmap.md`, `docs/guide/architecture-biagent.md` §2, §4, §5, §11

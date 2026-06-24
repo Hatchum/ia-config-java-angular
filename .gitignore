@@ -1,6 +1,7 @@
 # Claude Code — local, machine-specific artifacts (never committed)
 .claude/changes.local.log
 .claude/settings.local.json
+.claude/logs/
 
 # Temporary staging — skills to relocate to the trading project (see README inside)
 _export-trading/

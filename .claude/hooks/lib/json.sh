@@ -58,3 +58,41 @@ hook_changed_files() {
   [ -n "$cmd" ] && printf '%s\n' "$cmd" | tr -d '\r' \
     | sed -nE -e 's/^\*\*\* (Add|Update) File: (.+)$/\2/p' -e 's/^\*\*\* Move to: (.+)$/\1/p'
 }
+
+# jsonl_append <file> <key1> <val1> [<key2> <val2> ...] — append one JSON object
+# as a line, creating the parent dir if needed. Prefers jq (proper escaping),
+# falls back to Python, then to naive unescaped output as a last resort —
+# mirrors the jq → python → grep fallback chain in json_field above, for the
+# same reason (Windows hosts without jq, possibly without a real Python either).
+# JSON Lines audit pattern per code.claude.com/docs/en/hooks ("Audit configuration
+# changes" example: jq -c '{...}' >> file).
+jsonl_append() {
+  local file="$1" py
+  shift
+  mkdir -p "$(dirname "$file")"
+  if command -v jq >/dev/null 2>&1; then
+    local args=() filter="" key
+    while [ "$#" -ge 2 ]; do
+      key="$1"
+      args+=(--arg "$key" "$2")
+      [ -z "$filter" ] || filter+=","
+      filter+="$key:\$$key"
+      shift 2
+    done
+    jq -cn "${args[@]}" "{$filter}" >> "$file"
+  elif py="$(_hook_python)"; then
+    "$py" -c '
+import json, sys
+pairs = sys.argv[1:]
+sys.stdout.write(json.dumps(dict(zip(pairs[0::2], pairs[1::2]))) + "\n")' "$@" >> "$file"
+  else
+    local line="" key
+    while [ "$#" -ge 2 ]; do
+      key="$1"
+      [ -z "$line" ] || line+=","
+      line+="\"$key\":\"$2\""
+      shift 2
+    done
+    printf '{%s}\n' "$line" >> "$file"
+  fi
+}
