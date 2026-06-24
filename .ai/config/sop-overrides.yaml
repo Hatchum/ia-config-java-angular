@@ -1,0 +1,32 @@
+# Team/project-level SOP override layer — edited DIRECTLY by each team, never
+# generated. Referenced from .ai/config/subagents.yaml (`team_overrides:`).
+#
+# Each subagent's system prompt instructs it to check this file for its own
+# `role` x `archetype` key and apply any entry found here ON TOP of the base
+# procedure from .ai/config/subagents.yaml (`sop:` -> dev-orchestration.md
+# anatomy), BEFORE starting work — without anyone editing subagents.yaml,
+# workflows.yaml, or the subagent's own .claude/agents/*.md file.
+#
+# Empty by default (no team patch yet). Shape, for when a team needs one:
+#
+# overrides:
+#   <role>:
+#     <archetype>:
+#       add_steps:
+#         - after: "<short anchor matching a step in the base anatomy>"
+#           step: "<the extra step text, plain language>"
+#       remove_steps:
+#         - "<short anchor matching a step in the base anatomy to drop>"
+#       replace_steps:
+#         "<short anchor matching a step in the base anatomy>": "<replacement step text>"
+#
+# Worked (illustrative, NOT active — delete the `_example` key below once a
+# real team override is added; subagents only read under `overrides:`):
+# _example:
+#   backend-coder:
+#     feature:
+#       add_steps:
+#         - after: "implement the minimal change that follows existing conventions"
+#           step: "Run mvn -q license:check before the test suite (team compliance gate added 2026-06)"
+
+overrides: {}

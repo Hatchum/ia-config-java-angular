@@ -1,0 +1,90 @@
+# Source of truth for the role/SOP/HITL layer — DO NOT import directly into tools.
+# Generator: scripts/sync-config.py (extension PROPOSED, not yet implemented —
+# see docs/research/agentique.md, task P2).
+# Outputs (once the generator is extended):
+#   a small GENERATED "ROLE BINDING" comment block projected INTO each existing
+#   .claude/agents/*.md (not the whole file — system prompt/tools/model stay
+#   hand-authored; see the comment block already present in each agent file).
+# Until the generator is extended, keep this file and .claude/agents/*.md in
+# sync by hand whenever a role->subagent binding changes.
+
+# ── (a) Role -> subagent bindings ────────────────────────────────────────────
+# Workflow steps in workflows.yaml reference a ROLE, never a subagent name
+# directly — changing which subagent fulfills a role touches only this table,
+# no skill and no workflow file.
+roles:
+  researcher: [agent-explore-code, agent-explore-docs, agent-explore-web]
+  backend-coder: [agent-code-java]
+  frontend-coder: [agent-code-angular]
+  reviewer: [agent-review-adversarial, agent-security-reviewer]   # security-reviewer = explicit escalation, not the routine default — see hitl/escalation note below
+
+# ── (b) sop(role, archetype) -> procedure source ─────────────────────────────
+# Base procedure = the matching task-archetype anatomy already defined in
+# .ai/skills/prompt-creator/references/dev-orchestration.md ("Task archetypes"
+# section). `flavor` is a one-line steer applied on top of that anatomy for
+# this role; it does not duplicate the anatomy's text.
+sop:
+  researcher:
+    feature:
+      anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#planning
+      flavor: "read-only exploration only — locate integration points and existing conventions, no edits"
+    bug-fix:
+      anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#planning
+      flavor: "read-only reproduction support — gather the evidence backend-coder/frontend-coder needs to find the root cause, no edits"
+  backend-coder:
+    feature:
+      anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#feature
+      flavor: "TDD-flavored — write/adjust the failing test before the implementation that makes it pass"
+    bug-fix:
+      anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#bug-fix
+      flavor: "reproduce -> root-cause -> smallest fix -> regression test, in that order"
+  frontend-coder:
+    feature:
+      anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#feature
+      flavor: "TDD-flavored where practical (component/service specs); otherwise implement then add the missing spec"
+    bug-fix:
+      anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#bug-fix
+      flavor: "reproduce -> root-cause -> smallest fix -> regression test, in that order"
+  reviewer:
+    review-refactor:
+      anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#review-refactor
+      flavor: "fresh-context, diff + acceptance criteria ONLY — flag deviations that affect correctness/requirements, not style nits (avoid over-engineering call-outs)"
+
+# ── Team/project-level SOP override layer ────────────────────────────────────
+# Patches or extends the `sop:` steps above WITHOUT editing this file, any
+# workflows.yaml entry, or any .claude/agents/*.md file. Each subagent's system
+# prompt is instructed to read this file for its own role x archetype key
+# before starting work (see .claude/agents/*.md "Load your SOP" step). Empty by
+# default — see sop-overrides.yaml for the (currently empty) template.
+team_overrides: .ai/config/sop-overrides.yaml
+
+# ── (c) HITL status-token convention ──────────────────────────────────────────
+# Every subagent's system prompt (see .claude/agents/*.md) is instructed to end
+# its final summary with exactly one line matching one of these three forms —
+# plain text, not XML, since subagents here return free text to the parent
+# session rather than a parseable envelope (unlike the <handoff> contract in
+# dev-orchestration.md, which this token vocabulary is adapted from: `status`,
+# `<blockers>`, `<open_questions>`).
+hitl:
+  status_token_prefix: "STATUS:"
+  values:
+    - "STATUS: completed"
+    - "STATUS: blocked — <one-line reason>"
+    - "STATUS: needs_clarification — <one-line question>"
+  # Mechanical orchestrator rule (no ambiguity — see docs/research/agentique.md
+  # §HITL for the full decision table):
+  #   - last non-empty line matches "STATUS: completed"            -> proceed to next workflow step
+  #   - last non-empty line matches "STATUS: blocked ..."           -> call AskUserQuestion before any further dispatch
+  #   - last non-empty line matches "STATUS: needs_clarification .." -> call AskUserQuestion before any further dispatch
+  #   - line missing, malformed, or contradicted by the agent's own
+  #     reported verification result (e.g. claims `completed` but
+  #     verification=fail)                                          -> fail-safe: treat as needs_clarification, call AskUserQuestion
+  on_missing_or_malformed: needs_clarification
+  # AskUserQuestion is unavailable to subagents themselves (confirmed
+  # docs/reference/subagents.md + https://code.claude.com/docs/en/sub-agents,
+  # fetched 2026-06-24: "AskUserQuestion, EnterPlanMode, ExitPlanMode (unless
+  # permissionMode: plan), ScheduleWakeup, WaitForMcpServers" are not available
+  # to subagents) — so escalation to the human is necessarily carried by the
+  # orchestrator (the main session), never by the subagent that detected the
+  # blocker.
+  escalation_note: "agent-security-reviewer is never the default `reviewer` binding for a routine workflow step — it is invoked by explicit human request or when agent-review-adversarial's findings indicate a security-sensitive surface (auth, crypto, payment, deserialization, file I/O from user input)."

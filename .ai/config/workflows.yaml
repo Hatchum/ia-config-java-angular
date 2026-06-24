@@ -1,0 +1,108 @@
+# Source of truth for role-based workflows — DO NOT import directly into tools.
+# Generator: scripts/sync-config.py (extension PROPOSED, not yet implemented —
+# see docs/research/agentique.md, task P2). Once extended, this file is
+# CROSS-VALIDATED against .ai/config/subagents.yaml (every `role:` below must
+# exist in subagents.yaml's `roles:`) and PROJECTED as a small generated
+# "ROLE BINDING" comment block inside each .claude/agents/*.md — the rest of
+# each agent file (system prompt, tools, model) stays hand-authored.
+#
+# Mechanism (load-bearing decision — see docs/research/agentique.md §Context):
+# every step below is executed by the orchestrator (the main Claude Code
+# session) dispatching IN-SESSION SUBAGENTS — never a dynamic workflow (`/workflows`)
+# and never an Agent Team. Per the official docs/en/workflows page (fetched
+# 2026-06-24): "No mid-run user input — Only agent permission prompts can pause
+# a run. For sign-off between stages, run each stage as its own workflow." That
+# is incompatible with the reactive HITL escalation this kit requires (the
+# orchestrator must be able to ask the human the moment ANY step reports
+# `blocked`/`needs_clarification`, not only at a pre-planned stage boundary).
+# Dynamic workflows/Agent Teams remain a PROPOSED ADDITION for bulk, low-HITL
+# work only (see backlog task P10) — never the default loop.
+#
+# `dispatch: parallel` on a step means: the orchestrator may issue several
+# independent Agent/Task calls in ONE message for that step (e.g. one
+# agent-explore-* subagent per area). `dispatch: sequential` means: the
+# orchestrator must wait for the result (and run the HITL check, see
+# subagents.yaml `hitl:`) before dispatching the next step. `depends_on` lists
+# the role(s) whose output this step's delegation prompt must include.
+
+workflows:
+  # Archetype: feature — EPCT-flavored. Backlog skill `workflow-dev` (roadmap.md
+  # Phase 3, skills.md "à créer") is the future file-per-step packaging of this
+  # same sequence; this YAML is the data the skill will read once it exists.
+  workflow-dev:
+    archetype: feature
+    steps:
+      - id: explore
+        role: researcher
+        dispatch: parallel          # one agent-explore-* per area (code/docs/web), independent
+        depends_on: []
+        verification_gate: false
+      - id: implement-backend
+        role: backend-coder
+        dispatch: sequential
+        depends_on: [explore]
+        verification_gate: true
+        verification: "scripts\\test.cmd (or mvn -q test) green; build green via scripts\\build.cmd"
+      - id: implement-frontend
+        role: frontend-coder
+        dispatch: parallel          # may run alongside implement-backend if the feature touches disjoint files
+        depends_on: [explore]
+        verification_gate: true
+        verification: "ng test (Karma/Jasmine) and ng build green; lint clean"
+      - id: review
+        role: reviewer
+        dispatch: sequential
+        depends_on: [implement-backend, implement-frontend]
+        verification_gate: true
+        verification: "agent-review-adversarial reports no high-severity finding against acceptance criteria"
+
+  # Archetype: bug-fix — DEBUG loop. Backlog skill `workflow-debug` (roadmap.md
+  # Phase 3) is the future file-per-step packaging; this YAML is its data source.
+  workflow-debug:
+    archetype: bug-fix
+    steps:
+      - id: analyze
+        role: researcher
+        dispatch: sequential        # reproduction must happen before anything else
+        depends_on: []
+        verification_gate: false
+      - id: fix
+        role: backend-coder         # orchestrator picks backend-coder or frontend-coder per the bug's stack at dispatch time
+        dispatch: sequential
+        depends_on: [analyze]
+        verification_gate: true
+        verification: "regression test fails before the fix and passes after; full suite green"
+      - id: review
+        role: reviewer
+        dispatch: sequential
+        depends_on: [fix]
+        verification_gate: true
+        verification: "agent-review-adversarial reports no high-severity finding"
+
+  # Archetype: review-refactor — adversarial gate, invocable standalone on an
+  # existing diff/PR, or as the trailing step of workflow-dev/workflow-debug
+  # above. Genuinely missing from the roadmap's named backlog (workflow-dev/
+  # workflow-debug only) — added here for full feature-delivery coverage.
+  workflow-review:
+    archetype: review-refactor
+    steps:
+      - id: review
+        role: reviewer
+        dispatch: sequential
+        depends_on: []
+        verification_gate: true
+        verification: "findings table produced (severity + path); if changes were applied to fix a finding, tests re-run green"
+
+# Default archetype -> workflow mapping. OVERRIDABLE PER INVOCATION: a human can
+# explicitly ask the orchestrator to run a different pattern for a given task
+# (e.g. "redo this one as workflow-debug" on a task tagged `feature`) — the
+# orchestrator honors that without anyone editing this file.
+default_archetype_workflow:
+  feature: workflow-dev
+  bug-fix: workflow-debug
+  review-refactor: workflow-review
+  # `planning` and bulk/low-HITL archetypes (repo-wide audit, mass migration) are
+  # NOT bound to an in-session workflow on purpose — see backlog task P10 (proposed
+  # addition: a saved dynamic workflow under .claude/workflows/, out of scope for
+  # this design's default execution mechanism).
+  planning: null
