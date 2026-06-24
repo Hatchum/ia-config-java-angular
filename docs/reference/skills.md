@@ -107,7 +107,11 @@ tokens de chaque skill récent sont réattachés (budget combiné 25 000 tokens)
 - **`skill-claude-memory`** — doc CLAUDE.md / rules.
 - **`skill-subagent-creator`** — cf. skill `subagent-creator` existant.
 - **`skill-hook-creator`** — templates de [hooks](hooks.md).
-- **`workflow-dev` / `workflow-debug`** — voir [workflows.md](workflows.md).
+- ~~**`workflow-dev` / `workflow-debug`**~~ — ✅ **créés** (pattern
+  fichiers-étapes), voir [`workflows.md`](workflows.md) et
+  [`docs/research/agentique.md`](../research/agentique.md) pour la
+  conception (rôles, SOP paramétrables, HITL) et les fichiers réels sous
+  `.ai/skills/workflow-dev/` et `.ai/skills/workflow-debug/`.
 
 ## Évaluer un skill
 

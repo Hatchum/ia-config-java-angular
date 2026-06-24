@@ -405,11 +405,17 @@ Pour ne rien perdre des trois analyses sources.
 | **Codex config** | `.codex/config.toml` (pointeur politique d'exécution) |
 | **Générateur** | `scripts/sync-config.py` (+ `.ps1`/`.cmd`) : valide YAML, génère les 4 sorties, garde anti-écrasement |
 
+### ✅ Fait (complément)
+
+| Brique | Détail |
+|---|---|
+| **Subagents (source + agents Claude)** | `.ai/config/subagents.yaml` (+ `workflows.yaml`, `sop-overrides.yaml`) créés ; 7 `.claude/agents/*.md` créés à la main. Conception complète : [`docs/research/agentique.md`](../research/agentique.md). Génération **TOML Codex** et **projection automatique** par `scripts/sync-config.py` restent à faire (voir ci-dessous, ligne « Subagents (génération + Codex) ») |
+
 ### ❌ Reste à faire
 
 | Brique | Action |
 |---|---|
-| **Subagents** | Créer `.ai/config/subagents.yaml` + génération `.claude/agents/*.md` et TOML Codex |
+| **Subagents (génération + Codex)** | Étendre `scripts/sync-config.py` pour valider `subagents.yaml`/`workflows.yaml` et projeter le bloc « ROLE BINDING » dans `.claude/agents/*.md` ; générer l'équivalent TOML côté Codex (pas d'équivalent documenté à ce jour pour le mécanisme rôle/SOP — voir `docs/research/agentique.md` tâches P1/P9) |
 | **AGENTS.md / CLAUDE.md** | Assemblage par le générateur si fragments ; remplir placeholders `ARCHITECTURE.md` |
 | **Skills CLI (au besoin)** | Ajouter d'autres skills CLI selon les besoins équipe (MCP remplacés par skills+CLI). NB : Docker & clients BDD **volontairement exclus** par la politique BDD |
 | **Layout global** | `~/ai-config/` (hub utilisateur) + symlinks `~/.claude`, `~/.agents`, `~/.codex` |

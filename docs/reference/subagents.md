@@ -105,15 +105,27 @@ Un **fork** (`/fork`) hérite de toute la conversation (pas d'isolation
 d'entrée) — pratique quand un subagent nommé aurait besoin de trop de contexte.
 Un subagent peut spawner des subagents imbriqués (profondeur max 5).
 
-## Subagents à créer (roadmap projet, repris de TASK.md)
+## Subagents — ✅ créés
 
-| Agent | Modèle suggéré | Outils |
-|---|---|---|
-| `agent-explore-docs` | haiku | Read, Bash, find-docs/ctx7 |
-| `agent-explore-web` | haiku | WebSearch, WebFetch |
-| `agent-explore-code` | haiku | Read, Grep, Glob |
-| `agent-security-reviewer` | opus | Read, Grep, Glob, Bash |
-| `agent-code-java` | sonnet | + skills Java |
-| `agent-code-angular` | sonnet | + skills Angular |
+Les 6 subagents listés dans la roadmap sont **créés**, plus un septième
+(`agent-review-adversarial`) genuinement manquant identifié pendant la
+conception du rôle `reviewer`. Conception complète (rôles, SOP paramétrables
+par archétype, convention HITL `STATUS:`) et fichiers réels dans
+[`docs/research/agentique.md`](../research/agentique.md) ; bindings rôle→
+subagent dans `.ai/config/subagents.yaml`.
 
-> Aide : le skill `subagent-creator` (présent dans ce dépôt) génère ces fichiers.
+| Agent | Modèle | Outils | Rôle |
+|---|---|---|---|
+| `agent-explore-docs` | haiku | Read, Bash, Grep, Glob, find-docs/ctx7 | `researcher` |
+| `agent-explore-web` | haiku | WebSearch, WebFetch | `researcher` |
+| `agent-explore-code` | haiku | Read, Grep, Glob | `researcher` |
+| `agent-security-reviewer` | opus | Read, Grep, Glob, Bash | `reviewer` (escalade sensible) |
+| `agent-code-java` | sonnet | Read, Edit, Write, Bash, Grep, Glob + skills Java | `backend-coder` |
+| `agent-code-angular` | sonnet | Read, Edit, Write, Bash, Grep, Glob + skills Angular | `frontend-coder` |
+| `agent-review-adversarial` (nouveau) | sonnet | Read, Grep, Glob + skills clean-code/solid-principles/test-quality | `reviewer` (routine) |
+
+> Aide : le skill `subagent-creator` (présent dans ce dépôt) peut générer de
+> futurs subagents sur ce même modèle. Reste à faire : étendre
+> `scripts/sync-config.py` pour valider `.ai/config/subagents.yaml`/
+> `workflows.yaml` et projeter le bloc « ROLE BINDING » dans chaque fichier
+> (voir `docs/research/agentique.md` tâche P1).
