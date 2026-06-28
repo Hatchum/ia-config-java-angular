@@ -1,3 +1,10 @@
+# Conception de prompts
+Prompt :
+- system message
+- user message
+- assistant message
+Mettre en place un hook sur le UserPromptsubmit/ UserPromptEp pour build le prompt avec le user message.
+
 # Brouillons de prompts & templates de skills (archive)
 
 > Matériau de travail extrait de l'ancien `docs/TASK.md` lors de son éclatement.
