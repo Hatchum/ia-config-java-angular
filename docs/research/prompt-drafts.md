@@ -3,7 +3,19 @@ Prompt :
 - system message
 - user message
 - assistant message
+
 Mettre en place un hook sur le UserPromptsubmit/ UserPromptEp pour build le prompt avec le user message.
+
+Différents types de prompt :
+- structure :
+  - Zero shot prompt
+  - Fe shot prompt
+- Contenu :
+  - Instruction prompt (invite pédagogique)
+  - Reasoning prompt (invite de raisonnement)
+  - Induction prompt (invite d'induction)
+  - Paraphrasing prompt (invite de paraphrase)
+  - Chain-of-though prompt (invite de la chaine de pensée)
 
 # Brouillons de prompts & templates de skills (archive)
 
