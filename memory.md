@@ -56,13 +56,18 @@ workflows/Agent Teams remain a *proposed future addition* for bulk low-HITL work
 
 ### Data model (3 YAML files; since 2026-07-01 the generator cross-validates
 ### workflows/subagents and projects the ROLE BINDING block — task P1 done)
-- `.ai/config/workflows.yaml` — 3 workflows keyed by archetype:
-  - `workflow-dev` (feature, EPCT): explore(researcher, parallel) →
-    implement-backend(backend-coder) ∥ implement-frontend(frontend-coder) →
-    review(reviewer). Verification gates: mvn/build green; ng test/build green;
-    no high-severity finding.
-  - `workflow-debug` (bug-fix): analyze → fix (backend|frontend coder chosen at
-    dispatch) → review, all sequential; regression test red-before/green-after.
+- `.ai/config/workflows.yaml` — 3 workflows keyed by archetype. Steps have
+  either `role:` (subagent-dispatched) or `carried_by: orchestrator` (human
+  CHECKPOINT — the proactive half of HITL, added 2026-07-01 for spec-driven
+  development; generator validates the either/or plus `depends_on` targets):
+  - `workflow-dev` (feature, spec-driven EPCT): explore(researcher, parallel)
+    → **specify(checkpoint: AskUserQuestion loop → spec approved by human in
+    docs/specs/<date>-<slug>.md)** → implement-backend ∥ implement-frontend
+    (contract = spec acceptance criteria, coders must report criteria covered)
+    → review(reviewer, diff vs the spec's criteria verbatim incl. scope creep).
+  - `workflow-debug` (bug-fix): analyze → propose(checkpoint: human picks fix)
+    → fix → review → confirm(checkpoint: final human confirmation) — the two
+    checkpoints were implicit skill step files, now first-class YAML steps.
   - `workflow-review` (review-refactor): single reviewer step, standalone on a diff/PR.
   - `default_archetype_workflow` maps archetype→workflow; `planning: null`
     (deliberately unbound). Overridable per invocation by the human.
@@ -118,13 +123,18 @@ false positives). Explicit decision: NO memory for explorers/coders (stale
 memory could bias future implementations).
 
 ### Workflow skills (orchestrator-side packaging)
-`.ai/skills/workflow-dev/` and `.ai/skills/workflow-debug/`: SKILL.md + 5 step
-files each (file-per-step pattern to avoid loading everything at once; read one
-at a time). The SKILL explicitly says: *you (the main session) are the
+`.ai/skills/feature/` (SKILL.md + 6 step files in `steps/` + spec-template.md) and
+`.ai/skills/bugfix/` (SKILL.md + 5 step files in `steps/`) — file-per-step pattern,
+read one at a time. The SKILL explicitly says: *you (the main session) are the
 orchestrator; never delegate the orchestration itself* (AskUserQuestion
-unavailable to subagents). workflow-debug maps the official DEBUG pattern with
-2 human checkpoints carried by the orchestrator: step-2-propose (human picks
-between 2–3 candidate fixes) and step-4-verify (final human confirmation).
+unavailable to subagents). feature is spec-driven since 2026-07-01:
+`steps/step-2-specify.md` batches ALL open questions (researchers' "Open questions"
+sections + drafting gaps) into AskUserQuestion calls, writes the spec from
+spec-template.md into docs/specs/, and blocks until explicit human approval;
+`steps/step-5-report.md` ticks acceptance criteria and flips the spec to `implemented`.
+bugfix maps the official DEBUG pattern with 2 human checkpoints carried
+by the orchestrator: `steps/step-2-propose.md` (human picks between 2–3 candidate fixes)
+and `steps/step-4-verify.md` (final human confirmation).
 
 ## 4. Hooks & observability
 
@@ -250,6 +260,17 @@ agent-memory seeded.
   gitignore generalized.
 - Status docs synced: architecture-biagent.md §6+§11, roadmap.md, agentique.md
   P1/P4 rows.
+- **Spec-driven development layer** (same day, user request for active
+  collaboration): `carried_by: orchestrator` checkpoint convention in
+  workflows.yaml (validated by the generator); `specify` step in workflow-dev
+  (explore → ask ALL questions → spec approved in docs/specs/ → implement
+  against acceptance criteria → review vs spec verbatim → report per
+  criterion); propose/confirm checkpoints made explicit in workflow-debug
+  YAML; spec-template.md added to the feature skill (6 step files in `steps/` subdirs);
+  researcher/coder/reviewer prompts + SOP flavors updated ("Open
+  questions" section, spec-as-contract, needs_clarification if spec missing);
+  spec-driven bullet added to AGENTS.md Working style (binds Codex too).
+  Design note: docs/research/agentique.md §Addendum 2026-07-01.
 
 **Still pending:**
 - **P5**: real-world test of /workflow-dev + /workflow-debug incl. an observed

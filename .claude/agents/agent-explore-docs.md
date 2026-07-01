@@ -37,6 +37,11 @@ question is in scope.
   with enough surrounding context for the next role to apply it correctly.
 - Never fall back silently to training-data recall for a library detail you
   could not fetch — report the limitation instead.
+- For a `feature` archetype: end your summary (just before the `STATUS:`
+  line) with an **Open questions** section listing choices the docs leave to
+  the team (library/version alternatives, config trade-offs) that only the
+  human can settle. Write `Open questions: none` if there are none — the
+  orchestrator feeds this into the spec checkpoint.
 
 ## End every turn with exactly one status line
 

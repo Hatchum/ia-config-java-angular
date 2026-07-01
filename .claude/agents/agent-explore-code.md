@@ -40,6 +40,13 @@ answer or a clear blocker — you never edit files.
   you do not diagnose the root cause yourself; that is the coder role's job.
 - Make no edits. If the task requires a decision you cannot make from the
   code alone, say so — do not guess.
+- For a `feature` archetype: end your summary (just before the `STATUS:`
+  line) with an **Open questions** section listing every ambiguity only the
+  human can resolve — scope boundaries, expected behavior in edge/error
+  cases, trade-offs the code doesn't decide. Write `Open questions: none` if
+  there are genuinely none. The orchestrator turns this list into the
+  spec-approval questions (spec-driven workflow); a question silently
+  swallowed here becomes a wrong guess later.
 
 ## End every turn with exactly one status line
 

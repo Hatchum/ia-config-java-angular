@@ -26,21 +26,21 @@ sop:
   researcher:
     feature:
       anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#planning
-      flavor: "read-only exploration only — locate integration points and existing conventions, no edits"
+      flavor: "read-only exploration only — locate integration points and existing conventions, no edits; end the summary (before the STATUS line) with an 'Open questions' section listing every ambiguity only the human can resolve (scope, expected behavior, trade-offs) — it feeds the spec checkpoint"
     bug-fix:
       anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#planning
       flavor: "read-only reproduction support — gather the evidence backend-coder/frontend-coder needs to find the root cause, no edits"
   backend-coder:
     feature:
       anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#feature
-      flavor: "TDD-flavored — write/adjust the failing test before the implementation that makes it pass"
+      flavor: "TDD-flavored — write/adjust the failing test before the implementation that makes it pass; the approved spec (path in the delegation prompt) is the contract: implement its acceptance criteria, report which ones you covered, and raise needs_clarification if the spec is missing, incomplete, or contradicted by the code"
     bug-fix:
       anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#bug-fix
       flavor: "reproduce -> root-cause -> smallest fix -> regression test, in that order"
   frontend-coder:
     feature:
       anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#feature
-      flavor: "TDD-flavored where practical (component/service specs); otherwise implement then add the missing spec"
+      flavor: "TDD-flavored where practical (component/service specs); otherwise implement then add the missing test; the approved feature spec (path in the delegation prompt) is the contract: implement its acceptance criteria, report which ones you covered, and raise needs_clarification if the spec is missing, incomplete, or contradicted by the code"
     bug-fix:
       anatomy_source: .ai/skills/prompt-creator/references/dev-orchestration.md#bug-fix
       flavor: "reproduce -> root-cause -> smallest fix -> regression test, in that order"
@@ -58,6 +58,13 @@ sop:
 team_overrides: .ai/config/sop-overrides.yaml
 
 # ── (c) HITL status-token convention ──────────────────────────────────────────
+# This is the REACTIVE half of the HITL design: escalate the moment any
+# subagent reports a problem. The PROACTIVE half is the `carried_by:
+# orchestrator` checkpoint steps in workflows.yaml (spec-driven development):
+# `specify` (workflow-dev) gathers ALL missing information from the human and
+# gets a spec approved BEFORE implementation; `propose`/`confirm`
+# (workflow-debug) make the human pick the fix and confirm the outcome. Both
+# halves run through AskUserQuestion, which only the orchestrator has.
 # Every subagent's system prompt (see .claude/agents/*.md) is instructed to end
 # its final summary with exactly one line matching one of these three forms —
 # plain text, not XML, since subagents here return free text to the parent

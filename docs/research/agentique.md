@@ -81,7 +81,7 @@ d'extension future** pour du travail en masse à faible granularité HITL
 | ~30 skills (Java, Angular, méta-outillage) | ✅ en place, réutilisés tels quels | `.ai/skills/*/SKILL.md` |
 | Règles Java/Angular | ✅ en place, réutilisées tels quelles | `.ai/rules/*.md` |
 | Anatomies d'archétype (planning/feature/bug-fix/review-refactor) | ✅ en place, réutilisées comme base SOP | `.ai/skills/prompt-creator/references/dev-orchestration.md` |
-| Skills `workflow-dev` / `workflow-debug` (packaging fichiers-étapes) | ❌ n'existaient pas → ✅ **créés dans une passe suivante du même run** (voir §Artefacts) | `.ai/skills/workflow-dev/`, `.ai/skills/workflow-debug/` |
+| Skills `feature` / `bugfix` (packaging fichiers-étapes) | ❌ n'existaient pas → ✅ **créés dans une passe suivante du même run** (voir §Artefacts) | `.ai/skills/feature/`, `.ai/skills/bugfix/` |
 | `scripts/sync-config.py` étendu pour `workflows.yaml`/`subagents.yaml` | ❌ pas fait (volontairement — voir §Génération) | voir tâche P1 |
 
 ## Workflows catalogue
@@ -107,12 +107,15 @@ cause de ce que `workflows.md` affirmait déjà. Conservés comme **proposition
 d'extension future**, sans nom de workflow fixe (`default_archetype_workflow.planning:
 null` dans `workflows.yaml`) — voir tâche P10.
 
-`workflow-dev`/`workflow-debug` portent les noms déjà réservés par
-`roadmap.md`/`skills.md` pour les futurs skills « fichiers-étapes » du même
-nom (toujours backlog, tâches P7/P8) : ce YAML est conçu comme la **source de
-données** que ces skills liront une fois écrits, plutôt que comme un système
-parallèle à eux. `workflow-review` est, lui, **vraiment nouveau** : ni
-`roadmap.md` ni `skills.md` ne nomment de pattern de revue autonome —
+Choix de nommage : les workflows YAML (`workflow-dev`, `workflow-debug`) et
+leurs skills correspondants (`feature`, `bugfix`) portent des noms distincts
+— les workflows sont des clés d'orchestration abstraites (pour `subagents.yaml`
+et `default_archetype_workflow`), les skills sont des points d'entrée
+conviviales (invocation de l'utilisateur : `feature "<description>"`, non
+`workflow-dev "<description>"`). Les skills eux-mêmes lisent et executent le
+workflow YAML mappé à leur archétype (`feature` → `workflow-dev`, `bugfix` →
+`workflow-debug`). `workflow-review` est, lui, **vraiment nouveau** : ni
+`roadmap.md` ni `skills.md` n'anticipaient un pattern de revue autonome —
 ajouté ici pour couvrir le cycle complet de livraison d'une feature, comme
 demandé à l'étape 3 du prompt source.
 
@@ -449,8 +452,8 @@ comment l'étendre, sans s'y engager :
 | `.claude/agents/agent-code-angular.md` | Subagent frontend-coder, Angular, sonnet |
 | `.claude/agents/agent-review-adversarial.md` | Subagent reviewer routinier, diff-only, sonnet, `memory: project` |
 | `.claude/agents/agent-security-reviewer.md` | Subagent reviewer sensible/escalade, opus, `memory: project` |
-| `.ai/skills/workflow-dev/SKILL.md` + 5 step files | Skill fichiers-étapes (pattern `docs/reference/workflows.md`) qui lit `workflows.yaml` → `workflow-dev` et dispatche explore (parallèle) → implement-backend/frontend (parallèle entre eux) → review, avec le contrôle `STATUS:`/`AskUserQuestion` à chaque étape |
-| `.ai/skills/workflow-debug/SKILL.md` + 5 step files | Skill fichiers-étapes mappant le pattern DEBUG officiel (Analyze→Log→Find→**Propose**→Fix→**Verify**, validation utilisateur aux étapes 1/3/5) sur les 3 rôles de `workflows.yaml` → `workflow-debug` ; le checkpoint « Propose » (choix humain entre 2-3 solutions) et la confirmation finale « Verify » sont portés par l'orchestrateur lui-même, pas par un subagent |
+| `.ai/skills/feature/SKILL.md` + 5 step files in `steps/` | Skill fichiers-étapes (pattern `docs/reference/workflows.md`) qui lit `workflows.yaml` → `workflow-dev` et dispatche explore (parallèle) → implement-backend/frontend (parallèle entre eux) → review, avec le contrôle `STATUS:`/`AskUserQuestion` à chaque étape ; spec checkpoint « specify » porté par l'orchestrateur, inséré entre explore et implement |
+| `.ai/skills/bugfix/SKILL.md` + 5 step files in `steps/` | Skill fichiers-étapes mappant le pattern DEBUG officiel (Analyze→Log→Find→**Propose**→Fix→**Verify**, validation utilisateur aux étapes 1/3/5) sur les 3 rôles de `workflows.yaml` → `workflow-debug` ; le checkpoint « Propose » (choix humain entre 2-3 solutions) et la confirmation finale « Verify » sont portés par l'orchestrateur lui-même, pas par un subagent |
 | `.claude/agent-memory/agent-review-adversarial/MEMORY.md` | Amorce la mémoire persistante (niveau 3) de cet agent — index vide, le dossier `.claude/agent-memory/` n'existait pas avant cette passe |
 | `.claude/agent-memory/agent-security-reviewer/MEMORY.md` | Idem pour cet agent |
 | `.claude/hooks/log-changes.sh` + `.ps1` (réécrits) | Option A — `PostToolUse` (Write\|Edit\|MultiEdit / `apply_patch`) écrit désormais du JSON Lines (`event: tool_edit`) dans `.claude/logs/agent-activity.jsonl` au lieu du TSV `changes.local.log` (désormais figé/legacy, toujours gitignoré) |
@@ -485,6 +488,67 @@ ailleurs, séquencée ici ; « (nouveau) » = surfacée par cette analyse.
 | P7 | (proposition future) Écrire et sauvegarder un premier dynamic workflow (`.claude/workflows/<nom>.js`) pour l'archétype `planning`/audit large — hors mécanisme d'exécution par défaut de ce document | D2 | `/<nom>` apparaît dans `/workflows`, fan-out de workers réutilisant les définitions `agent-explore-*`/`agent-review-adversarial` existantes comme types de subagent | backlog (proposition explicite, pas une tâche d'exécution par défaut) |
 | P8 | (proposition future) Documenter le déclencheur `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` et le cas d'usage retenu (hypothèses concurrentes en debug), sans l'activer par défaut (roadmap Phase 4 « Agent Teams ») | — | Une ligne dans `AGENTS.md`/`CLAUDE.md` explique comment et quand l'activer | backlog (proposition) |
 | P9 | Étendre la génération Codex (TOML) une fois qu'un besoin concret Codex-side existe pour ces rôles (architecture-biagent §5) | P1 | `.codex/config.toml`/équivalent projette le même mapping rôle→agent | backlog (hors périmètre actuel, noté pour mémoire) |
+
+## Addendum 2026-07-01 — Spec-driven development (checkpoints proactifs)
+
+Évolution demandée par l'utilisateur : une collaboration **active** — l'agent
+analyse le code puis pose **toutes** les questions nécessaires avant de
+développer. Le mécanisme HITL de ce document était purement **réactif**
+(escalade sur `STATUS: blocked`/`needs_clarification`). Ajout d'une moitié
+**proactive**, sans changer le mécanisme d'exécution (subagents en session,
+orchestrateur seul détenteur d'`AskUserQuestion`) :
+
+- **Nouvelle convention `carried_by: orchestrator`** dans `workflows.yaml` :
+  une étape-checkpoint exécutée par l'orchestrateur lui-même, jamais
+  déléguée. Validée par `sync-config.py` (une étape sans `role:` doit porter
+  `carried_by: orchestrator` ; `depends_on` vérifié).
+- **`workflow-dev` passe de 4 à 5 étapes** : `explore` →
+  **`specify`** (checkpoint) → `implement-backend` ∥ `implement-frontend` →
+  `review`. Le checkpoint `specify` : fusionne les « Open questions » des
+  researchers avec les zones d'ombre du brouillon de spec, pose tout via
+  `AskUserQuestion` (par lots, options concrètes), rédige la spec depuis
+  `.ai/skills/workflow-dev/spec-template.md` dans `docs/specs/<date>-<slug>.md`,
+  la fait **approuver explicitement**, et rien ne s'implémente avant. Les
+  critères d'acceptation de la spec sont le contrat : les coders rapportent
+  les critères couverts (sinon réponse malformée), le reviewer relit le diff
+  contre la section « Acceptance criteria » verbatim (y compris le scope
+  creep), le rapport final coche critère par critère et passe la spec en
+  `implemented`.
+- **`workflow-debug` explicite ses checkpoints** : `propose` et `confirm`
+  (déjà présents comme step files du skill) deviennent des étapes
+  `carried_by: orchestrator` de première classe dans le YAML.
+- **Skill `workflow-dev` renuméroté** (6 step files) : step-2-specify inséré,
+  implement/review/report décalés en 3/4/5 ; `spec-template.md` ajouté au
+  skill. SOP flavors (`subagents.yaml`) et prompts des 7 agents mis à jour
+  (researchers : section « Open questions » obligatoire en archétype
+  `feature` ; coders : spec = contrat, `needs_clarification` si spec
+  absente/incomplète ; reviewer : référentiel = spec). Principe résumé dans
+  `AGENTS.md` → Working style (bind aussi Codex).
+
+### Clarification subsequent (same session) — Skill naming & step file organization
+
+Après la rédaction de cet Addendum, deux raffinements ont été appliqués pour
+clarifier l'architecture :
+
+1. **Renaming des skills pour l'interface utilisateur** : `.ai/skills/workflow-dev/`
+   → `.ai/skills/feature/`, `.ai/skills/workflow-debug/` → `.ai/skills/bugfix/`.
+   Rationale : les workflows YAML (`workflow-dev`, `workflow-debug`) sont des
+   clés d'orchestration abstraites pour `subagents.yaml` ; les skills sont des
+   points d'entrée invocables par l'utilisateur final (`feature "<description>"`,
+   non `workflow-dev`). L'asymétrie deliberée (workflows abstraits vs skills
+   applicatifs) reflète deux rôles distincts. Skills lisent et executent le
+   workflow YAML correspondant à leur archétype (`feature` → `workflow-dev`,
+   `bugfix` → `workflow-debug`).
+
+2. **Structuration des step files** : step files maintenant organisés dans un
+   sous-répertoire `steps/` au sein de chaque skill (`.ai/skills/feature/steps/step-*.md`,
+   `.ai/skills/bugfix/steps/step-*.md`). Cette hiérarchie clarifie la granularité
+   (skills = orchestration patterns; steps = exécution séquentielle) et permet
+   l'expansion future (artefacts, templates partagés au niveau skill).
+
+Les références dans ce document et `agentique.md` ont été mises à jour pour
+refléter ces changements (chèques croisées ligne 84, 452-453). Tous les chemins
+internes des step files ont été mis à jour (références croisées dans les fichier step).
 
 ## Questions ouvertes
 

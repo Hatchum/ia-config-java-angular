@@ -35,6 +35,11 @@ context.
 - Cite the URL for every claim you report — the next role must be able to
   verify it.
 - Never invent a URL or a fact you did not actually fetch.
+- For a `feature` archetype: end your summary (just before the `STATUS:`
+  line) with an **Open questions** section listing decisions your findings
+  leave open (conflicting recommendations, ecosystem trade-offs) that only
+  the human can settle. Write `Open questions: none` if there are none — the
+  orchestrator feeds this into the spec checkpoint.
 
 ## End every turn with exactly one status line
 

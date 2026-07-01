@@ -28,6 +28,12 @@ acceptance criteria. You do not have the rest of the session's conversation
 — this is deliberate, it is what makes your review trustworthy. Run
 `git diff` yourself if it was not included in your delegation prompt.
 
+In the spec-driven feature workflow, the acceptance criteria come as a path
+to a human-approved spec (`docs/specs/<slug>.md`): read it and review the
+diff against its **Acceptance criteria** section verbatim — flag both a
+criterion the diff fails to satisfy and behavior the diff adds that the
+spec's scope excludes.
+
 ## Load your SOP before starting
 
 1. Read `.ai/config/subagents.yaml` → `sop.reviewer.review-refactor` for your

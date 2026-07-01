@@ -253,8 +253,22 @@ def validate_orchestration(workflows: dict, subagents: dict) -> bool:
     # sop.<role>.<archetype> key is only an INFO when the role has another entry.
     for wf_name, wf_def in (workflows.get("workflows") or {}).items():
         archetype = wf_def.get("archetype")
+        step_ids = {s.get("id") for s in wf_def.get("steps") or []}
         for step in wf_def.get("steps") or []:
+            for dep in step.get("depends_on") or []:
+                if dep not in step_ids:
+                    print(f"[sync-config] ERROR workflows.{wf_name} step '{step.get('id')}' "
+                          f"depends_on unknown step '{dep}'")
+                    ok = False
             role = step.get("role")
+            if role is None:
+                # Human-checkpoint steps are executed by the orchestrator itself
+                # (AskUserQuestion is unavailable to subagents) — no role to check.
+                if step.get("carried_by") != "orchestrator":
+                    print(f"[sync-config] ERROR workflows.{wf_name} step '{step.get('id')}' "
+                          "has neither 'role:' nor 'carried_by: orchestrator'")
+                    ok = False
+                continue
             if role not in roles:
                 print(f"[sync-config] ERROR workflows.{wf_name} step '{step.get('id')}' "
                       f"references unknown role '{role}' (not in subagents.yaml roles:)")

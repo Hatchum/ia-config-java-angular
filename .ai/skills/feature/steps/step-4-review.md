@@ -1,9 +1,10 @@
-# Step 3 — Review (rôle `reviewer`, gate de fin de boucle)
+# Step 4 — Review (rôle `reviewer`, gate de fin de boucle)
 
 1. Dispatch `Agent(agent-review-adversarial)` (séquentiel, dépend des
-   résultats de `step-2-implement.md`) avec : le diff produit (ou demande-lui
-   de lancer `git diff` lui-même) et les critères d'acceptation de la
-   feature.
+   résultats de `steps/step-3-implement.md`) avec : le diff produit (ou demande-lui
+   de lancer `git diff` lui-même) et le **chemin de la spec approuvée**
+   (`docs/specs/<slug>.md`) — ses critères d'acceptation sont le référentiel
+   de la revue, verbatim, pas une reformulation de ta part.
 2. Applique la règle `STATUS:` sur son retour.
 3. Si son résumé signale une surface sensible (auth, crypto, paiement,
    désérialisation, I/O fichier piloté par l'utilisateur), dispatch en plus
@@ -15,4 +16,4 @@
    concerné avec le finding précis, soit `AskUserQuestion` si le correctif
    implique un choix (ex. changer une décision d'architecture).
 5. Une fois la revue propre (aucun finding haute sévérité, ou tous corrigés
-   et re-vérifiés), passe à `step-4-report.md`.
+   et re-vérifiés), passe à `steps/step-5-report.md`.

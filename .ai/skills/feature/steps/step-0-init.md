@@ -1,8 +1,9 @@
 # Step 0 — Init
 
-1. Lis `.ai/config/workflows.yaml` → `workflows.workflow-dev` (les 4 étapes
-   `explore`/`implement-backend`/`implement-frontend`/`review`, leur
-   `dispatch`, `depends_on`, `verification_gate`/`verification`) et
+1. Lis `.ai/config/workflows.yaml` → `workflows.workflow-dev` (les 5 étapes
+   `explore`/`specify`/`implement-backend`/`implement-frontend`/`review`,
+   leur `dispatch`, `depends_on`, `carried_by`,
+   `verification_gate`/`verification`) et
    `default_archetype_workflow.feature` (doit valoir `workflow-dev` — sinon
    un humain a peut-être déjà surchargé l'archétype par invocation : dans ce
    cas suis l'autre workflow nommé, pas celui-ci).
@@ -19,4 +20,4 @@
    demande explicite.
 4. Note en une phrase la portée de la feature (ce que tu vas transmettre aux
    subagents dans leur prompt de délégation) avant de passer à
-   `step-1-explore.md`.
+   `steps/step-1-explore.md`.

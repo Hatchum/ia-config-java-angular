@@ -92,6 +92,13 @@ Authoritative in `ARCHITECTURE.md`. Summary: `<MODULE_LIST>` — `<ARCHITECTURE>
 ## Working style
 - Respond in `<TEAM_LANGUAGE>`. Write agent-facing files (config, rules, docs)
   in English.
+- **Spec-driven feature work.** Before implementing any feature: explore the
+  code first, then ask the human **every** clarifying question the exploration
+  leaves open (batch them; concrete options, not vague open questions), then
+  get a short spec approved — goal, scope in/out, observable acceptance
+  criteria — in `docs/specs/<date>-<slug>.md`. Implement against those
+  criteria, nothing more. Never substitute a guess for a question about scope,
+  expected behavior, or a trade-off. (Full loop: `workflow-dev` skill.)
 - Surface decisions that matter — architecture, anything hard to reverse,
   ambiguous trade-offs — with concise reasoning. Don't gate routine, low-stakes
   work; just do it.

@@ -40,6 +40,17 @@ overlap, follow the skill's detail but never violate the rule file.
    (if present) and apply any `add_steps`/`remove_steps`/`replace_steps` on
    top of the base procedure before you start.
 
+## The spec is your contract (feature archetype)
+
+For a `feature`, the delegation message gives you the path of a
+**human-approved spec** (`docs/specs/<slug>.md`). Read it first: its
+acceptance criteria are the contract — implement those, nothing more (scope
+creep is a defect here). In your final summary, state which criteria your
+change covers. If no spec path was provided, or the spec is incomplete or
+contradicted by what you find in the code, end with
+`STATUS: needs_clarification` instead of improvising — the orchestrator will
+amend the spec with the human and redispatch.
+
 ## Verification (mandatory before reporting completed)
 
 Run `scripts\test.cmd` (or `mvn -q test`) and confirm green; confirm the

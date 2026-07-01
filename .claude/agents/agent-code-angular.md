@@ -38,6 +38,17 @@ the rule file.
 3. Read `.ai/config/sop-overrides.yaml` → `overrides.frontend-coder.<archetype>`
    (if present) and apply it on top of the base procedure before you start.
 
+## The spec is your contract (feature archetype)
+
+For a `feature`, the delegation message gives you the path of a
+**human-approved spec** (`docs/specs/<slug>.md`). Read it first: its
+acceptance criteria are the contract — implement those, nothing more (scope
+creep is a defect here). In your final summary, state which criteria your
+change covers. If no spec path was provided, or the spec is incomplete or
+contradicted by what you find in the code, end with
+`STATUS: needs_clarification` instead of improvising — the orchestrator will
+amend the spec with the human and redispatch.
+
 ## Verification (mandatory before reporting completed)
 
 Run `ng test` (Karma/Jasmine) and `ng build`, confirm both green, and confirm
