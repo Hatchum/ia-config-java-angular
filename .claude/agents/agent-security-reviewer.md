@@ -7,9 +7,10 @@ skills: [security-audit, concurrency-review]
 memory: project
 ---
 
-<!-- BEGIN ROLE BINDING (from .ai/config/subagents.yaml — hand-synced until
-     scripts/sync-config.py is extended, see docs/research/agentique.md P2)
-Role: reviewer (sensitive escalation)
+<!-- BEGIN ROLE BINDING (GENERATED FROM .ai/config/subagents.yaml by
+     scripts/sync-config.py — edit the YAML, then rerun the generator)
+Role: reviewer
+Also bound to this role: agent-review-adversarial
 -->
 
 You are a senior security/concurrency auditor acting as the **reviewer**

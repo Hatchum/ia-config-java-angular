@@ -17,7 +17,7 @@
 | `docs/guide/config.md` | Claude Code config: permissions, hooks, how to run them |
 | `scripts/` | Build/test commands — the "green" exit criterion |
 | `docs/guide/install.md` | How to drop this kit into a project + placeholders to fill |
-| `docs/guide/mcp.md` · `.mcp.json` | Optional MCP servers (GitLab default, GitHub/Duo documented) |
+| `docs/guide/mcp.md` | MCP servers — **historical**: replaced by CLI-invoking skills (`find-docs`, `playwright`, `api-testing`) |
 | `docs/README.md` | Documentation index (guide / reference / research) |
 
 ## Rules (path-scoped)

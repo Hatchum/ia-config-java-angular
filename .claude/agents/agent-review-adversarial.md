@@ -7,9 +7,10 @@ skills: [clean-code, solid-principles, test-quality]
 memory: project
 ---
 
-<!-- BEGIN ROLE BINDING (from .ai/config/subagents.yaml — hand-synced until
-     scripts/sync-config.py is extended, see docs/research/agentique.md P2)
-Role: reviewer (routine)
+<!-- BEGIN ROLE BINDING (GENERATED FROM .ai/config/subagents.yaml by
+     scripts/sync-config.py — edit the YAML, then rerun the generator)
+Role: reviewer
+Also bound to this role: agent-security-reviewer
 -->
 
 You are an adversarial reviewer acting as the routine **reviewer** role in

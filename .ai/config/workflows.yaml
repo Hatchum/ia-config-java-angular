@@ -1,10 +1,11 @@
 # Source of truth for role-based workflows — DO NOT import directly into tools.
-# Generator: scripts/sync-config.py (extension PROPOSED, not yet implemented —
-# see docs/research/agentique.md, task P2). Once extended, this file is
-# CROSS-VALIDATED against .ai/config/subagents.yaml (every `role:` below must
-# exist in subagents.yaml's `roles:`) and PROJECTED as a small generated
-# "ROLE BINDING" comment block inside each .claude/agents/*.md — the rest of
-# each agent file (system prompt, tools, model) stays hand-authored.
+# Generator: scripts/sync-config.py (task P1 — implemented 2026-07-01): this
+# file is CROSS-VALIDATED against .ai/config/subagents.yaml (every `role:`
+# below must exist in subagents.yaml's `roles:`, every non-null
+# default_archetype_workflow value must name a workflow defined here); the
+# ROLE BINDING comment block inside each .claude/agents/*.md is generated from
+# subagents.yaml — the rest of each agent file (system prompt, tools, model)
+# stays hand-authored.
 #
 # Mechanism (load-bearing decision — see docs/research/agentique.md §Context):
 # every step below is executed by the orchestrator (the main Claude Code

@@ -7,28 +7,38 @@ en lisant le vrai code. Il ne dépend d'**aucune** config personnelle/globale.
 
 ## 1. Copier ceci à la racine du dépôt cible
 ```
-CLAUDE.md
+AGENTS.md             (SOURCE unique des instructions — lue nativement par Codex)
+CLAUDE.md             ("@AGENTS.md" + couche spécifique Claude Code)
 ARCHITECTURE.md
 .gitignore            (à fusionner avec le .gitignore existant du projet)
-.claude/              (settings.json, rules/, hooks/, skills/  ← skills Java + méta : find-docs, prompt-creator, skill-creator, subagent-creator)
-scripts/              (wrappers build/test)
-.agents/              (source des skills Angular, gérée par l'installeur)
+.ai/                  (dossier CANONIQUE : skills/ + rules/ + config/ — la seule vraie copie)
+.claude/              (settings.json GÉNÉRÉ, hooks/, agents/ ; skills + rules = liens vers .ai/)
+.agents/              (skills = lien vers .ai/skills — découverte côté Codex)
+.codex/               (config.toml, hooks.json, rules/ — GÉNÉRÉS par sync-config)
+scripts/              (wrappers build/test + générateur sync-config.*)
 skills-lock.json      (suit la source amont des skills Angular)
-frontend/             (module Angular placeholder : .claude/skills/ ← skills Angular,
-                       en symlinks vers .agents/ — à renommer/déplacer vers le vrai module)
-.mcp.json             (serveur GitLab via la CLI glab ; prérequis : glab + glab auth login — voir docs/guide/mcp.md)
-docs/                 (guide/config.md + guide/mcp.md = référence utile dans la cible ;
-                       guide/install.md optionnel ; research/subagent-creator-*.md = artefacts internes du kit, ne pas copier)
+frontend/             (module Angular placeholder : CLAUDE.md per-module +
+                       .claude/skills/ en symlinks vers .ai/skills/angular-* —
+                       à renommer/déplacer vers le vrai module)
+docs/                 (guide/config.md = référence utile dans la cible ;
+                       guide/install.md optionnel ; docs/research/ = artefacts
+                       internes du kit, ne pas copier)
 ```
 > **Ne PAS copier `README.md`** : c'est la page d'accueil du *kit*, il écraserait
 > le `README.md` du projet cible.
 >
-> MCP est **optionnel** : `.mcp.json` déclare le serveur **GitLab** (`glab mcp serve`,
-> approuvé au premier usage). Alternatives documentées dans `docs/guide/mcp.md`
-> (GitLab Duo hébergé, GitHub MCP). Le supprimer si l'équipe n'en veut pas.
+> **MCP retiré** : les outils externes sont couverts par des skills invoquant
+> leur CLI (`find-docs`/ctx7, `playwright`, `api-testing`). `docs/guide/mcp.md`
+> n'est conservé qu'à titre historique — aucun `.mcp.json` à copier.
 >
 > Sous Windows, préserver les symlinks avec `git config --global core.symlinks true`
-> avant le clone/la copie, ou les convertir en copies réelles (§5).
+> avant le clone/la copie, ou les convertir en copies réelles (§5). Les liens de
+> dossiers (`.claude/skills`, `.claude/rules`, `.agents/skills`) peuvent aussi être
+> posés en junctions : `cmd /c mklink /J .claude\skills .ai\skills` (idem rules/agents).
+>
+> Après copie et remplissage des placeholders, régénérer le résiduel par-outil :
+> `scripts\sync-config.ps1` (valide `.ai/config/*.yaml`, régénère `settings.json`
+> + `.codex/*`, projette le bloc ROLE BINDING dans `.claude/agents/*.md`).
 
 ## 2. Remplir les placeholders
 Lire le vrai POM parent, l'arborescence des modules et le `package.json` pour
@@ -46,6 +56,7 @@ résoudre chacun.
 | `<PARENT_POM_ARTIFACT>` | `ARCHITECTURE.md` | `artifactId` du POM parent |
 | Responsabilités / deps / flux des modules | `ARCHITECTURE.md` §1–5 | Le vrai graphe des modules (sans cycle) |
 | `<LINT_COMMANDS>` | `.claude/hooks/lib/checks.sh` / `checks.ps1` | Les vraies commandes de lint/format du projet (§4) |
+| `<VERIFY_COMMANDS>` | `.claude/hooks/lib/checks.sh` / `checks.ps1` | La commande de gate build/tests du hook `verify-on-stop` (§4) — ex. `mvn -q test` |
 | `ANGULAR_DIR` / `$AngularDir` | `scripts/test.cmd` / `test.ps1` | Le répertoire du module Angular (défaut `frontend`) |
 | Répertoire du module Angular (`frontend`) | dossier `frontend/`, `frontend/CLAUDE.md`, `ANGULAR_DIR` (scripts) | Si le module Angular ne s'appelle pas `frontend`, renommer le dossier en conséquence. La rule Angular est **scopée par contenu** (`*.ts` / `*.scss` / `*.component.html`), donc aucun edit nécessaire |
 
@@ -58,36 +69,44 @@ PowerShell / cmd) n'est pas encore figé. Une fois fixé :
 - **Permissions :** resserrer les patterns `deny` volontairement larges (ex.
   `Remove-Item *`) vers le shell choisi.
 
-## 4. Activer les linters
+## 4. Activer les linters et la gate de fin de session
 Les hooks sont livrés **inertes** (toute commande contenant encore `<` est
-ignorée, exit 0). Pour activer le lint, remplir `JAVA_LINT_CMD` / `WEB_LINT_CMD`
-dans `.claude/hooks/lib/checks.sh` (et/ou `checks.ps1`) avec les linters/
-formatters existants du projet. Détails dans `docs/guide/config.md`.
+ignorée, exit 0). Pour activer :
+- **Lint** : remplir `JAVA_LINT_CMD` / `WEB_LINT_CMD` dans
+  `.claude/hooks/lib/checks.sh` (et/ou `checks.ps1`) avec les linters/
+  formatters existants du projet.
+- **Gate de fin de session** (`verify-on-stop`) : remplir `VERIFY_CMD` /
+  `$VerifyCmd` au même endroit (ex. `mvn -q test`) — le hook `Stop` bloque
+  alors la fin d'une session sur un worktree modifié tant que cette commande
+  échoue (protection anti-boucle via `stop_hook_active`).
 
-## 5. Disposition des skills (groupés par stack)
-Les skills sont séparés par stack selon le pattern monorepo de Claude Code — un
-dossier par skill, chacun avec un `SKILL.md` :
-- **Skills Java** → `.claude/skills/` à la racine (vrais dossiers).
-- **Skills Angular** → `<angular-module>/.claude/skills/`. Dans le kit ils sont
-  dans le placeholder `frontend/.claude/skills/`, sous forme de **symlinks** vers
-  la source gérée par l'installeur `.agents/skills/` (suivie par `skills-lock.json`
-  à la racine) : l'installeur peut donc les mettre à jour sans duplication. Ils
-  sont découverts à la demande quand Claude travaille sur des fichiers du module.
+Détails dans `docs/guide/config.md`.
+
+## 5. Disposition des skills (source unique `.ai/skills/`)
+La **seule vraie copie** de tous les skills vit dans `.ai/skills/` (un dossier
+par skill, chacun avec un `SKILL.md`). Le reste n'est que des liens :
+- **Racine (les deux agents)** → `.claude/skills` et `.agents/skills` sont des
+  liens (symlink/junction) vers `.ai/skills/`.
+- **Skills Angular (per-module)** → `<angular-module>/.claude/skills/`. Dans le
+  kit, le placeholder `frontend/.claude/skills/` contient des **symlinks** vers
+  `.ai/skills/angular-developer` et `.ai/skills/angular-new-app` (source amont
+  suivie par `skills-lock.json` à la racine). Ils sont découverts à la demande
+  quand Claude travaille sur des fichiers du module.
 
 Pour finaliser :
 - **Symlinks Windows.** Soit exécuter `git config --global core.symlinks true`
   (+ mode Développeur / admin) avant le clone pour que les symlinks se
-  matérialisent, **soit** remplacer chaque lien de `frontend/.claude/skills/` par
-  une copie réelle du dossier source correspondant dans `.agents/skills/` (on perd
-  la mise à jour auto par l'installeur, mais c'est increvable sur n'importe quel
-  poste Windows).
+  matérialisent, **soit** poser des junctions (`mklink /J`, aucun droit requis)
+  pour les liens de dossiers, **soit** remplacer chaque lien par une copie
+  réelle du dossier source correspondant dans `.ai/skills/` (on perd la source
+  unique, mais c'est increvable sur n'importe quel poste Windows).
 - **Déplacer les skills Angular vers le vrai module Angular.** Si le module ne
   s'appelle pas `frontend`, déplacer `frontend/.claude/skills/` dans le répertoire
-  réel du module (garder les cibles relatives des symlinks vers `.agents/skills/`
+  réel du module (garder les cibles relatives des symlinks vers `.ai/skills/`
   à la racine, ou les re-pointer) et supprimer le placeholder `frontend/`. Garder
   `ANGULAR_DIR` (scripts) cohérent.
-- L'équipe ajoute ses propres skills au bon endroit (Java à la racine, Angular
-  dans le module). Les skills livrés peuvent rester ou être remplacés.
+- L'équipe ajoute ses propres skills dans `.ai/skills/` (vus par les deux
+  agents). Les skills livrés peuvent rester ou être remplacés.
 
 ## 6. Vérifier
 Depuis la racine du dépôt, lancer les wrappers et confirmer que les deux passent

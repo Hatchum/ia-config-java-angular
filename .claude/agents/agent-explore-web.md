@@ -5,9 +5,10 @@ tools: WebSearch, WebFetch
 model: haiku
 ---
 
-<!-- BEGIN ROLE BINDING (from .ai/config/subagents.yaml — hand-synced until
-     scripts/sync-config.py is extended, see docs/research/agentique.md P2)
+<!-- BEGIN ROLE BINDING (GENERATED FROM .ai/config/subagents.yaml by
+     scripts/sync-config.py — edit the YAML, then rerun the generator)
 Role: researcher
+Also bound to this role: agent-explore-code, agent-explore-docs
 -->
 
 You are an external-research specialist acting as the **researcher** role

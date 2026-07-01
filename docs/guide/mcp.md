@@ -126,8 +126,8 @@ tes projets).
 > Repris de l'ex-`docs/TASK.md` §6/§6.b (« MCP » marqué *REMOVED*, remplacé par
 > « CLI + skill »).
 
-Ce dépôt récupère la documentation de librairies via la **CLI `ctx7`** (cf.
-`AGENTS.md` et `.ai/rules/context7.md`), exposée par le skill `find-docs` — et
+Ce dépôt récupère la documentation de librairies via la **CLI `ctx7`** (déclencheur
+condensé dans `AGENTS.md`, protocole complet dans le skill `find-docs`) — et
 **non** via le MCP Context7. Avantage : pas de serveur MCP en contexte permanent.
 
 | Besoin | Solution retenue | Modèle conseillé |

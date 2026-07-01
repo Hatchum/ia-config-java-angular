@@ -58,8 +58,16 @@ claude:
         - type: command
           shell: bash
           command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/log-worktree-snapshot.sh"'
+  # verify-on-stop = the P4 deterministic gate: blocks (exit 2) ending a
+  # session on a dirty worktree if the VERIFY_CMD configured in
+  # .claude/hooks/lib/checks.sh fails. Ships inert (placeholder command →
+  # skip), loop-protected via stop_hook_active. Claude-only, like the other
+  # Stop/Subagent* events.
   Stop:
     - commands:
+        - type: command
+          shell: bash
+          command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-on-stop.sh"'
         - type: command
           shell: bash
           command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/log-worktree-snapshot.sh"'

@@ -49,14 +49,19 @@ variante `.sh` (bash) **et** une `.ps1` (PowerShell) sont livrées pour chaque h
 | Hook | Événement / matcher | Rôle |
 |------|---------------------|------|
 | `lint-format` | PostToolUse · `Write\|Edit\|MultiEdit` | Lint/formate le fichier touché (Java → outillage Java ; TS/HTML/SCSS/CSS → ESLint/Prettier). En cas d'échec, exit 2 renvoie la sortie du linter à Claude pour correction. |
-| `log-changes` | PostToolUse · `Write\|Edit\|MultiEdit` | Ajoute `timestamp · outil · fichier` à `.claude/changes.local.log` (gitignoré). Ne bloque jamais. |
+| `log-changes` | PostToolUse · `Write\|Edit\|MultiEdit` | Ajoute une ligne JSONL `event: tool_edit` (avec `agent_type`/`agent_id`) à `.claude/logs/agent-activity.jsonl` (gitignoré). Ne bloque jamais. |
+| `log-agent-lifecycle` | SubagentStart / SubagentStop · `.*` | Journalise `subagent_start`/`subagent_stop` dans `.claude/logs/agent-runs.jsonl` — qui a tourné, quand. Ne bloque jamais. |
+| `log-worktree-snapshot` | Stop + SubagentStop | Scanne `git status --porcelain` (`event: worktree_snapshot`) pour capturer les modifications faites via `Bash` brut, invisibles au PostToolUse. Ne bloque jamais. |
+| `verify-on-stop` | Stop | **Gate de fin de session** : si le worktree est modifié et que `VERIFY_CMD` (lib/checks) est configurée, exit 2 bloque la fin de session tant que build/tests échouent. Livré inerte ; anti-boucle via `stop_hook_active`. |
 | `pre-commit-lint` | PreToolUse · `Bash` | Si la commande est un `git commit`, lint les fichiers indexés ; exit 2 **bloque** le commit. |
 
 Logique partagée (propriétaire unique) :
-- `lib/json.sh` / `lib/json.ps1` — extrait un champ du JSON de l'événement
-  (jq si présent, sinon repli grep / `ConvertFrom-Json` en PowerShell).
+- `lib/json.sh` / `lib/json.ps1` — extrait un champ du JSON de l'événement et
+  écrit du JSON Lines (`jsonl_append`/`Add-JsonLine`) — jq si présent, sinon
+  repli Python détecté / `ConvertFrom-Json` en PowerShell.
 - `lib/checks.sh` / `lib/checks.ps1` — routage **et seul endroit où vivent les
-  commandes de lint** (les placeholders `<LINT_COMMANDS>`).
+  commandes de lint et de vérification** (placeholders `<LINT_COMMANDS>` et
+  `<VERIFY_COMMANDS>`).
 
 ### Configurer les linters (requis pour activer le lint)
 Les hooks sont livrés **inertes et sûrs** : tant que les commandes ne sont pas
@@ -92,8 +97,12 @@ inutilisée.
 Un **subagent** est un assistant spécialisé qui tourne dans **sa propre fenêtre de
 contexte**, avec son **prompt système**, un **jeu d'outils restreint** et son
 **modèle** ; Claude lui délègue une tâche selon sa `description` et ne récupère
-qu'un résumé. Le kit n'en livre aucun par défaut — le dossier `.claude/agents/`
-est **créé à la demande**.
+qu'un résumé. Le kit en livre **7** (3 explorateurs haiku, 2 codeurs sonnet,
+2 reviewers sonnet/opus), liés aux rôles de `.ai/config/subagents.yaml` et
+orchestrés par les workflows de `.ai/config/workflows.yaml` (voir
+`docs/research/agentique.md`). Le bloc `ROLE BINDING` en tête de chaque fichier
+agent est **généré** par `scripts/sync-config.py` depuis `subagents.yaml` — le
+reste du fichier (prompt système, outils, modèle) reste édité à la main.
 
 Chaque subagent est un fichier Markdown (`.claude/agents/<nom>.md`) : frontmatter
 YAML (config) + corps (= prompt système). Champs de config les plus utiles :
@@ -121,7 +130,10 @@ Deux couches distinctes, détaillées dans `docs/reference/agent-system-logs.md`
   les spans du subagent sous le span outil parent.
 
 ## Artefacts locaux (gitignorés)
-- `.claude/changes.local.log` — journal de changements append-only de `log-changes`.
+- `.claude/logs/agent-runs.jsonl` — cycle de vie des subagents (`log-agent-lifecycle`).
+- `.claude/logs/agent-activity.jsonl` — éditions (`tool_edit`) + snapshots
+  (`worktree_snapshot`), attribuables par `agent_type`/`agent_id`.
+- `.claude/changes.local.log` — ancien journal TSV de `log-changes` (**legacy**, figé).
 - `.claude/settings.local.json` — overrides personnels par machine, le cas échéant.
 
 ## Build & test

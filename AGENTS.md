@@ -37,46 +37,28 @@ Example:
 ---
 
 <!-- context7 -->
-Use the `ctx7` CLI to fetch current documentation whenever the user asks about a library, framework, SDK, API, CLI tool, or cloud service -- even well-known ones like React, Next.js, Prisma, Express, Tailwind, Django, or Spring Boot. This includes API syntax, configuration, version migration, library-specific debugging, setup instructions, and CLI tool usage. Use even when you think you know the answer -- your training data may not reflect recent changes. Prefer this over web search for library docs.
-
-Do not use for: refactoring, writing scripts from scratch, debugging business logic, code review, or general programming concepts.
-
-## Steps
-
-1. Resolve library: `npx ctx7@latest library <name> "<user's question>"` — use the official library name with proper punctuation (e.g., "Next.js" not "nextjs", "Customer.io" not "customerio", "Three.js" not "threejs")
-2. Pick the best match (ID format: `/org/project`) by: exact name match, description relevance, code snippet count, source reputation (High/Medium preferred), and benchmark score (higher is better). If results don't look right, try alternate names or queries (e.g., "next.js" not "nextjs", or rephrase the question)
-3. Fetch docs: `npx ctx7@latest docs <libraryId> "<user's question>"`
-4. Answer using the fetched documentation
-
-You MUST call `library` first to get a valid ID unless the user provides one directly in `/org/project` format. Use the user's full question as the query -- specific and detailed queries return better results than vague single words. Do not run more than 3 commands per question. Do not include sensitive information (API keys, passwords, credentials) in queries.
-
-For version-specific docs, use `/org/project/version` from the `library` output (e.g., `/vercel/next.js/v14.3.0`).
-
-If a command fails with a quota error, inform the user and suggest `npx ctx7@latest login` or setting `CONTEXT7_API_KEY` env var for higher limits. Do not silently fall back to training data.
+**Library/framework documentation — never answer from training data.** For any
+question about a library, framework, SDK, API, CLI tool, or cloud service (even
+well-known ones like Spring Boot or Angular — API syntax, configuration,
+migration, library-specific debugging), fetch current docs with the `ctx7` CLI
+via the **`find-docs` skill** — it owns the full protocol (resolve the library
+ID first, then fetch docs; ≤3 commands per question; never fall back silently
+to training data on a quota error). Prefer it over web search for library docs.
+Not for: refactoring, business-logic debugging, code review, or general
+programming concepts.
 > Codex only: run Context7 CLI requests outside Codex's default sandbox. If a Context7 CLI command fails with DNS or network errors such as ENOTFOUND, host resolution failures, or fetch failed, rerun it outside the sandbox instead of retrying inside the sandbox.
 <!-- context7 -->
 
 <!-- playwright -->
-For any change that affects the Angular UI — a layout/styling/rendering bug, a
-visual fix, or a feature with a visible surface — use the `playwright` skill to
-**see** the result, don't reason from the code alone. A visual change is "done"
-only when a screenshot confirms it.
-
-Proactive triggers: the user reports something looking wrong ("the table is
-misaligned", "the modal doesn't show", "broken on mobile"), asks to "check how
-it looks" / "take a screenshot" / "verify the fix in the UI", or you just edited
-a `.component.html`/`.scss`/template that changes what's on screen.
-
-Loop: start the app (`scripts\build` then `ng serve`), capture the current state
-with a pinned viewport
-(`npx playwright screenshot --viewport-size=1280,800 --wait-for-selector="<sel>" <url> before.png`),
-apply the fix, re-capture `after.png`, then **Read the images back** and compare
-before claiming success. Use `npx playwright test` for E2E and
-`toHaveScreenshot()` for pixel regression. See the `playwright` skill for detail;
-fetch exact API via `find-docs` (`ctx7 docs /microsoft/playwright "<question>"`).
-
-Do not use for: backend-only changes, non-visual logic, or unit-testable work
-that needs no rendering.
+**UI changes are verified visually, never from code alone.** For any change
+with a visible surface in the Angular UI (layout/styling/rendering bug, visual
+fix, feature with an on-screen effect — or whenever the user says something
+"looks wrong" or asks to "check how it looks"), use the **`playwright` skill**:
+start the app, screenshot before/after with a pinned viewport, **read the
+images back** and compare before claiming success (`npx playwright test` +
+`toHaveScreenshot()` for E2E/pixel regression). A visual change is "done" only
+when a screenshot confirms it. Not for: backend-only changes or non-visual,
+unit-testable work.
 <!-- playwright -->
 
 
@@ -91,7 +73,7 @@ that needs no rendering.
 | `docs/guide/config.md`                                                  | Agent config: permissions, hooks, how to run them |
 | `scripts/`                                                              | Build/test commands — the "green" exit criterion |
 | `docs/guide/install.md`                                                 | How to drop this kit into a project + placeholders to fill |
-| `docs/guide/mcp.md` · `.mcp.json`                                       | Optional MCP servers (GitLab default, GitHub/Duo documented) |
+| `docs/guide/mcp.md`                                                     | MCP servers — **historical**: replaced by CLI-invoking skills (`find-docs`, `playwright`, `api-testing`) |
 | `docs/README.md`                                                        | Documentation index (guide / reference / research) |
 
 Open `ARCHITECTURE.md` before implementing or changing a module.

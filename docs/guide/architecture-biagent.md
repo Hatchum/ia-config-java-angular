@@ -274,16 +274,25 @@ Script `scripts/sync-config.py` (wrappers `scripts/sync-config.ps1` et `.cmd`) �
 auto-bootstrap de PyYAML s'il manque. Lancement : `scripts\sync-config.ps1`.
 
 Ce qu'il fait aujourd'hui :
-1. **Valide** les sources YAML de `.ai/config/` (clé `permissions:` présente, listes bien typées).
+1. **Valide** les sources YAML de `.ai/config/` (clé `permissions:` présente, listes bien
+   typées) **et la couche d'orchestration** (ajout 2026-07-01, tâche P1 de
+   `docs/research/agentique.md`) : chaque `role:` de `workflows.yaml` existe dans
+   `subagents.yaml` → `roles:` ; chaque subagent listé a son fichier
+   `.claude/agents/<name>.md` sur disque ; chaque rôle utilisé a une entrée `sop:` ;
+   `default_archetype_workflow` pointe vers des workflows existants ; la convention
+   `hitl:` est complète ; `team_overrides:` (sop-overrides.yaml) existe et se parse.
 2. **Génère** depuis `permissions.yaml` + `hooks.yaml` :
     - `.claude/settings.json` (permissions + hooks Claude) ;
     - `.codex/rules/execution-policy.rules` (Starlark, dérivé des permissions) ;
     - `.codex/config.toml` (pointeur politique d'exécution) ;
     - `.codex/hooks.json` (hooks Codex).
-3. **Refuse d'écraser** un fichier sans le marqueur `GENERATED FROM .ai/config` (protection
-   d'un fichier édité à la main).
+3. **Projette** depuis `subagents.yaml` le bloc `<!-- BEGIN ROLE BINDING ... -->` dans
+   chaque `.claude/agents/*.md` — **granularité région** : seul ce bloc est généré, le
+   reste du fichier agent (frontmatter, prompt système) reste édité à la main.
+4. **Refuse d'écraser** un fichier entier sans le marqueur `GENERATED FROM .ai/config`
+   (protection d'un fichier édité à la main).
 
-Reste à ajouter au générateur (voir §11) : `subagents.yaml` → `.claude/agents/` + TOML Codex ;
+Reste à ajouter au générateur (voir §11) : TOML Codex pour les subagents ;
 assemblage `AGENTS.md`/`CLAUDE.md` ; pose des symlinks/junctions.
 
 Marqueur inséré dans **tout fichier généré** (commentaire ou clé JSON `"_generated"`) :
@@ -409,13 +418,15 @@ Pour ne rien perdre des trois analyses sources.
 
 | Brique | Détail |
 |---|---|
-| **Subagents (source + agents Claude)** | `.ai/config/subagents.yaml` (+ `workflows.yaml`, `sop-overrides.yaml`) créés ; 7 `.claude/agents/*.md` créés à la main. Conception complète : [`docs/research/agentique.md`](../research/agentique.md). Génération **TOML Codex** et **projection automatique** par `scripts/sync-config.py` restent à faire (voir ci-dessous, ligne « Subagents (génération + Codex) ») |
+| **Subagents (source + agents Claude)** | `.ai/config/subagents.yaml` (+ `workflows.yaml`, `sop-overrides.yaml`) créés ; 7 `.claude/agents/*.md` créés à la main. Conception complète : [`docs/research/agentique.md`](../research/agentique.md) |
+| **Subagents (validation + projection)** | ✅ 2026-07-01 (tâche P1) : `scripts/sync-config.py` valide `workflows.yaml`/`subagents.yaml` (rôles, SOP, hitl, fichiers agents sur disque, sop-overrides) et projette le bloc `ROLE BINDING` dans chaque `.claude/agents/*.md` (granularité région, reste du fichier manuel) |
+| **Hook Stop de gate build/tests** | ✅ 2026-07-01 (tâche P4) : `verify-on-stop.sh`/`.ps1` câblé sur `Stop` — bloque (exit 2) la fin de session sur worktree modifié si `VERIFY_CMD` (lib/checks) échoue. Livré **inerte** (placeholder), anti-boucle via `stop_hook_active` |
 
 ### ❌ Reste à faire
 
 | Brique | Action |
 |---|---|
-| **Subagents (génération + Codex)** | Étendre `scripts/sync-config.py` pour valider `subagents.yaml`/`workflows.yaml` et projeter le bloc « ROLE BINDING » dans `.claude/agents/*.md` ; générer l'équivalent TOML côté Codex (pas d'équivalent documenté à ce jour pour le mécanisme rôle/SOP — voir `docs/research/agentique.md` tâches P1/P9) |
+| **Subagents (Codex)** | Générer l'équivalent TOML côté Codex (pas d'équivalent documenté à ce jour pour le mécanisme rôle/SOP — voir `docs/research/agentique.md` tâche P9). La validation + projection ROLE BINDING côté Claude est ✅ faite (P1, voir tableau ci-dessus) |
 | **AGENTS.md / CLAUDE.md** | Assemblage par le générateur si fragments ; remplir placeholders `ARCHITECTURE.md` |
 | **Skills CLI (au besoin)** | Ajouter d'autres skills CLI selon les besoins équipe (MCP remplacés par skills+CLI). NB : Docker & clients BDD **volontairement exclus** par la politique BDD |
 | **Layout global** | `~/ai-config/` (hub utilisateur) + symlinks `~/.claude`, `~/.agents`, `~/.codex` |

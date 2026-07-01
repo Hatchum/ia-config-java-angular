@@ -5,7 +5,9 @@
 
 # Temporary staging — skills to relocate to the trading project (see README inside)
 _export-trading/
-.ai/skills/skill-creator/scripts/__pycache__/
+
+# Python bytecode (e.g. skill-creator scripts)
+__pycache__/
 
 # OS noise
 .DS_Store

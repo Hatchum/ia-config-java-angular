@@ -22,12 +22,13 @@
   `agent-explore-docs` / `-web` / `-code` (haiku), `agent-security-reviewer`
   (opus), `agent-code-java` / `-angular` (sonnet) sont **✅ créés**, plus
   `agent-review-adversarial` (sonnet, nouveau) — voir
-  [`research/agentique.md`](../research/agentique.md). Reste à faire :
-  étendre `scripts/sync-config.py` pour générer/valider
-  `.ai/config/workflows.yaml`/`subagents.yaml` (voir agentique.md tâche P1).
+  [`research/agentique.md`](../research/agentique.md). L'extension de
+  `scripts/sync-config.py` (validation `workflows.yaml`/`subagents.yaml` +
+  projection ROLE BINDING, tâche P1) est **✅ faite** (2026-07-01).
 - **Hooks** → cf. [`reference/hooks.md`](../reference/hooks.md) : validation TS,
-  validation Java, blocage migrations, ESLint/Prettier ; + un hook `Stop` de
-  gate build/tests proposé dans [`research/agentique.md`](../research/agentique.md) (tâche P4).
+  validation Java, blocage migrations, ESLint/Prettier restent à créer ; le hook
+  `Stop` de gate build/tests (tâche P4) est **✅ créé** (2026-07-01,
+  `verify-on-stop`, livré inerte — remplir `VERIFY_CMD` à l'installation).
 
 ## Ordre d'implémentation recommandé
 

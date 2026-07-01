@@ -9,6 +9,9 @@ JAVA_LINT_CMD='<LINT_COMMANDS: java — e.g. mvn -q spotless:apply checkstyle:ch
 # TS/HTML/SCSS/CSS. The touched file is exposed as $FILE.
 # Example: npx eslint --fix "$FILE" && npx prettier --write "$FILE"
 WEB_LINT_CMD='<LINT_COMMANDS: web — e.g. npx eslint --fix "$FILE" && npx prettier --write "$FILE">'
+# Full build/tests gate run by verify-on-stop.sh before a session may end on a
+# dirty worktree (task P4). Example: mvn -q test  — or the scripts/ wrappers.
+VERIFY_CMD='<VERIFY_COMMANDS: full gate — e.g. mvn -q test>'
 
 run_lint_for_file() {
   local file="$1" cmd=""

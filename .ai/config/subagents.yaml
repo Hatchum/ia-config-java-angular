@@ -1,12 +1,11 @@
 # Source of truth for the role/SOP/HITL layer — DO NOT import directly into tools.
-# Generator: scripts/sync-config.py (extension PROPOSED, not yet implemented —
-# see docs/research/agentique.md, task P2).
-# Outputs (once the generator is extended):
-#   a small GENERATED "ROLE BINDING" comment block projected INTO each existing
-#   .claude/agents/*.md (not the whole file — system prompt/tools/model stay
-#   hand-authored; see the comment block already present in each agent file).
-# Until the generator is extended, keep this file and .claude/agents/*.md in
-# sync by hand whenever a role->subagent binding changes.
+# Generator: scripts/sync-config.py (task P1 — implemented 2026-07-01):
+#   * cross-validates this file against .ai/config/workflows.yaml (roles,
+#     SOP keys, hitl convention, team_overrides path, agent files on disk);
+#   * projects a small GENERATED "ROLE BINDING" comment block INTO each
+#     .claude/agents/*.md (not the whole file — system prompt/tools/model stay
+#     hand-authored). After changing a role->subagent binding here, rerun
+#     scripts\sync-config.ps1 to refresh those blocks.
 
 # ── (a) Role -> subagent bindings ────────────────────────────────────────────
 # Workflow steps in workflows.yaml reference a ROLE, never a subagent name

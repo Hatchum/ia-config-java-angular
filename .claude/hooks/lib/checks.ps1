@@ -8,6 +8,9 @@ $script:JavaLintCmd = '<LINT_COMMANDS: java — e.g. mvn -q spotless:apply check
 # TS/HTML/SCSS/CSS. The touched file is exposed as $file.
 # Example: npx eslint --fix "$file"; npx prettier --write "$file"
 $script:WebLintCmd  = '<LINT_COMMANDS: web — e.g. npx eslint --fix "$file"; npx prettier --write "$file">'
+# Full build/tests gate run by verify-on-stop.ps1 before a session may end on a
+# dirty worktree (task P4). Example: mvn -q test  — or the scripts/ wrappers.
+$script:VerifyCmd   = '<VERIFY_COMMANDS: full gate — e.g. mvn -q test>'
 
 function Invoke-LintForFile {
     param([string]$file)
