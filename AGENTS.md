@@ -98,7 +98,7 @@ Authoritative in `ARCHITECTURE.md`. Summary: `<MODULE_LIST>` — `<ARCHITECTURE>
   get a short spec approved — goal, scope in/out, observable acceptance
   criteria — in `docs/specs/<date>-<slug>.md`. Implement against those
   criteria, nothing more. Never substitute a guess for a question about scope,
-  expected behavior, or a trade-off. (Full loop: `workflow-dev` skill.)
+  expected behavior, or a trade-off. (Full loop: `feature` skill.)
 - Surface decisions that matter — architecture, anything hard to reverse,
   ambiguous trade-offs — with concise reasoning. Don't gate routine, low-stakes
   work; just do it.

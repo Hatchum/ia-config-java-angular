@@ -14,9 +14,9 @@
 ## Backlog « à créer » (consolidé)
 
 - **Skills** → cf. [`reference/skills.md`](../reference/skills.md) : `skill-claude-memory`,
-  `skill-hook-creator` restent à créer ; `workflow-dev`, `workflow-debug`
-  (`prompt-creator` et `subagent-creator` déjà présents) sont **✅ créés** —
-  voir [`research/agentique.md`](../research/agentique.md). Brouillons de
+  `skill-hook-creator` restent à créer ; `feature`, `bugfix` (rebaptisés de
+  `workflow-dev`, `workflow-debug`) (`prompt-creator` et `subagent-creator` déjà présents)
+  sont **✅ créés** — voir [`research/agentique.md`](../research/agentique.md). Brouillons de
   prompts archivés dans [`research/prompt-drafts.md`](../research/prompt-drafts.md).
 - **Subagents** → cf. [`reference/subagents.md`](../reference/subagents.md) :
   `agent-explore-docs` / `-web` / `-code` (haiku), `agent-security-reviewer`
@@ -47,8 +47,8 @@ Phase 2 — Extensions (Court terme)
 
 Phase 3 — Subagents & Workflows (Moyen terme)               [✅ fait — voir research/agentique.md]
 ├── agent-explore-docs / -code / -web    ← exploration isolée
-├── workflow-dev (EPCT)                  ← Explore/Code(back+front)/Review
-├── workflow-debug                       ← debug structuré (Propose/Verify côté orchestrateur)
+├── feature (EPCT, ex-workflow-dev)      ← Explore/Code(back+front)/Review + Spec checkpoint
+├── bugfix (DEBUG, ex-workflow-debug)    ← debug structuré (Propose/Verify côté orchestrateur)
 └── MCP/CLI doc (ctx7)                   ← doc en temps réel (find-docs, déjà fait)
 
 Phase 4 — Spécialisation (Long terme)                        [✅ fait — voir research/agentique.md]
