@@ -507,7 +507,7 @@ orchestrateur seul détenteur d'`AskUserQuestion`) :
   `review`. Le checkpoint `specify` : fusionne les « Open questions » des
   researchers avec les zones d'ombre du brouillon de spec, pose tout via
   `AskUserQuestion` (par lots, options concrètes), rédige la spec depuis
-  `.ai/skills/workflow-dev/spec-template.md` dans `docs/specs/<date>-<slug>.md`,
+  `.ai/skills/feature/spec-template.md` dans `docs/specs/<date>-<slug>.md`,
   la fait **approuver explicitement**, et rien ne s'implémente avant. Les
   critères d'acceptation de la spec sont le contrat : les coders rapportent
   les critères couverts (sinon réponse malformée), le reviewer relit le diff
